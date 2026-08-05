@@ -61,36 +61,55 @@ export function InstitutionSelect({
         Institution
       </label>
 
-      <button
-        type="button"
-        onClick={() => !loading && setOpen(true)}
-        disabled={loading}
-        className={cn(
-          "flex w-full items-center justify-between gap-3 rounded-xl border bg-white px-4 py-3.5 text-left shadow-sm transition-all",
-          open
-            ? "border-teal-300 ring-2 ring-teal-100"
-            : "border-slate-200 active:border-teal-200",
-          loading && "cursor-not-allowed opacity-60",
-        )}
-      >
-        <span
+      <div className="relative flex items-center w-full">
+        <button
+          type="button"
+          onClick={() => !loading && setOpen(true)}
+          disabled={loading}
           className={cn(
-            "line-clamp-2 text-sm leading-snug",
-            value ? "font-medium text-slate-900" : "text-slate-400",
+            "flex w-full items-center justify-between gap-3 rounded-xl border bg-white pl-4 pr-12 py-3.5 text-left shadow-sm transition-all",
+            open
+              ? "border-teal-300 ring-2 ring-teal-100"
+              : "border-slate-200 active:border-teal-200",
+            loading && "cursor-not-allowed opacity-60",
           )}
         >
-          {loading
-            ? "Loading institutions…"
-            : value
-              ? selectedLabel
-              : "Choose an institution to view results"}
-        </span>
-        {loading ? (
-          <Loader2 className="h-5 w-5 shrink-0 animate-spin text-teal-500" />
-        ) : (
-          <ChevronDown className="h-5 w-5 shrink-0 text-slate-400" />
-        )}
-      </button>
+          <span
+            className={cn(
+              "line-clamp-2 text-sm leading-snug",
+              value ? "font-medium text-slate-900" : "text-slate-400",
+            )}
+          >
+            {loading
+              ? "Loading institutions…"
+              : value
+                ? selectedLabel
+                : "Choose an institution to view results"}
+          </span>
+        </button>
+
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+          {value && !loading && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange("");
+                onSearch?.("");
+              }}
+              className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+              aria-label="Clear selection"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+          {loading ? (
+            <Loader2 className="h-5 w-5 animate-spin text-teal-500" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-slate-400 pointer-events-none" />
+          )}
+        </div>
+      </div>
 
       {open && (
         <>
@@ -153,7 +172,7 @@ export function InstitutionSelect({
                       className={cn(
                         "w-full px-4 py-3.5 text-left text-sm leading-snug transition-colors active:bg-teal-50 sm:py-3 sm:hover:bg-teal-50",
                         value === institution.name &&
-                          "bg-teal-50 font-medium text-teal-900",
+                        "bg-teal-50 font-medium text-teal-900",
                       )}
                     >
                       {institution.name}
