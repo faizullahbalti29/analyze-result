@@ -22,12 +22,15 @@ export function ResultAnalyzer() {
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [studentsError, setStudentsError] = useState<string | null>(null);
 
-  // Fetch institutions whenever class tab changes
-  const fetchInstitutions = useCallback(async (classLevel: ClassLevel) => {
+  // Fetch institutions whenever class tab changes or search query updates
+  const fetchInstitutions = useCallback(async (classLevel: ClassLevel, query: string = "") => {
     setInstitutionsLoading(true);
     setInstitutionsError(null);
     try {
-      const res = await fetch(`/api/institutions?class=${classLevel}`);
+      const url = new URL(`/api/institutions`, location.origin);
+      url.searchParams.append("class", classLevel);
+      if (query) url.searchParams.append("q", query);
+      const res = await fetch(url.toString());
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json() as { institutions: Institution[] };
       setInstitutions(data.institutions);
@@ -67,9 +70,15 @@ export function ResultAnalyzer() {
     [],
   );
 
+  const [institutionQuery, setInstitutionQuery] = useState<string>("");
+
+  // Debounce effect for query and class level changes (initial load & search)
   useEffect(() => {
-    void fetchInstitutions(selectedClass);
-  }, [selectedClass, fetchInstitutions]);
+    const handler = setTimeout(() => {
+      void fetchInstitutions(selectedClass, institutionQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [selectedClass, institutionQuery, fetchInstitutions]);
 
   useEffect(() => {
     void fetchStudents(selectedClass, selectedInstitution);
@@ -85,6 +94,7 @@ export function ResultAnalyzer() {
   const handleClassChange = (value: ClassLevel) => {
     setSelectedClass(value);
     setSelectedInstitution("");
+    setInstitutionQuery("");
     setTopLimit(10);
     setStudents([]);
   };
@@ -111,6 +121,7 @@ export function ResultAnalyzer() {
             loading={institutionsLoading}
             value={selectedInstitution}
             onChange={setSelectedInstitution}
+            onSearch={setInstitutionQuery}
           />
         </section>
 

@@ -1,8 +1,8 @@
 "use client";
 
 import { Building2, ChevronDown, Loader2, Search, X } from "lucide-react";
-import Fuse from "fuse.js";
-import { useEffect, useMemo, useState } from "react";
+// import Fuse from "fuse.js"; // removed local fuzzy search
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Institution } from "@/lib/types";
 
@@ -11,6 +11,7 @@ interface InstitutionSelectProps {
   loading?: boolean;
   value: string;
   onChange: (value: string) => void;
+  onSearch?: (query: string) => void;
 }
 
 export function InstitutionSelect({
@@ -18,27 +19,10 @@ export function InstitutionSelect({
   loading = false,
   value,
   onChange,
+  onSearch,
 }: InstitutionSelectProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-
-  const fuse = useMemo(
-    () =>
-      new Fuse(institutions, {
-        keys: ["name"],
-        threshold: 0.45,   // 0 = exact, 1 = match anything
-        distance: 200,     // allow matches spread across long names
-        minMatchCharLength: 2,
-        shouldSort: true,
-      }),
-    [institutions],
-  );
-
-  const filtered = useMemo(() => {
-    const trimmed = query.trim();
-    if (!trimmed) return institutions;
-    return fuse.search(trimmed).map((r) => r.item);
-  }, [fuse, institutions, query]);
 
   const selectedLabel =
     institutions.find((institution) => institution.name === value)?.name ??
@@ -59,6 +43,15 @@ export function InstitutionSelect({
     onChange(institutionName);
     setOpen(false);
     setQuery("");
+    onSearch?.("");
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    if (query) {
+      setQuery("");
+      onSearch?.("");
+    }
   };
 
   return (
@@ -103,7 +96,7 @@ export function InstitutionSelect({
         <>
           <div
             className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-[2px] sm:bg-slate-900/20"
-            onClick={() => setOpen(false)}
+            onClick={handleClose}
             aria-hidden
           />
 
@@ -114,7 +107,7 @@ export function InstitutionSelect({
               </p>
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={handleClose}
                 className="rounded-lg p-1.5 text-slate-500 active:bg-slate-100"
                 aria-label="Close"
               >
@@ -128,16 +121,23 @@ export function InstitutionSelect({
                 <input
                   type="text"
                   value={query}
-                  onChange={(event) => setQuery(event.target.value)}
+                  onChange={(event) => {
+                    const nextVal = event.target.value;
+                    setQuery(nextVal);
+                    onSearch?.(nextVal);
+                  }}
                   placeholder="Search — typos OK…"
                   className="w-full bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400 sm:text-sm"
                   autoFocus
                 />
+                {loading && (
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin text-teal-500" />
+                )}
               </div>
             </div>
 
             <ul className="flex-1 overflow-y-auto overscroll-contain py-1">
-              {filtered.length === 0 ? (
+              {institutions.length === 0 ? (
                 <li className="px-4 py-8 text-center text-sm text-slate-500">
                   No match for{" "}
                   <span className="font-medium text-slate-700">
@@ -145,7 +145,7 @@ export function InstitutionSelect({
                   </span>
                 </li>
               ) : (
-                filtered.map((institution) => (
+                institutions.map((institution) => (
                   <li key={institution._id}>
                     <button
                       type="button"
