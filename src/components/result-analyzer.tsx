@@ -161,6 +161,24 @@ export function ResultAnalyzer() {
           </div>
         ) : (
           <div className="animate-fade-in space-y-6 sm:space-y-8">
+            {/* ── Selected institution banner ── */}
+            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-teal-200/70 bg-teal-50/50 px-4 py-3 sm:px-5">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <span className="shrink-0 flex h-8 w-8 items-center justify-center rounded-lg bg-teal-100 text-teal-600">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-teal-600">Selected Institution</p>
+                  <p className="truncate text-sm font-semibold text-slate-800">{selectedInstitution}</p>
+                </div>
+              </div>
+              <span className="shrink-0 inline-flex items-center rounded-full bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-700 ring-1 ring-teal-200">
+                Class {selectedClass}
+              </span>
+            </div>
+
             <StatsCards stats={stats} />
             <StudentTable
               students={displayedStudents}
@@ -172,11 +190,37 @@ export function ResultAnalyzer() {
         )}
       </main>
 
-      <footer className="mt-8 border-t border-slate-200/80 bg-white/50 py-5 sm:mt-12 sm:py-6">
-        <p className="text-center text-xs text-slate-400">
-          FBISE Result Analyzer · Federal Board of Intermediate &amp; Secondary
-          Education, Islamabad
-        </p>
+      <footer className="mt-8 border-t border-slate-200/80 bg-white/50">
+        {/* Disclaimer strip */}
+        <div className="border-b border-amber-200/60 bg-amber-50/70 px-4 py-3 sm:px-6">
+          <div className="mx-auto flex max-w-7xl items-start gap-2.5">
+            <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+            <p className="text-[11px] leading-relaxed text-amber-800 sm:text-xs">
+              <span className="font-semibold">Disclaimer:</span> This is an independent, unofficial result analysis tool and is{" "}
+              <span className="font-semibold">not affiliated with, endorsed by, or associated with</span> the Federal Board of
+              Intermediate &amp; Secondary Education (FBISE), Islamabad, or any other government authority. Data is sourced from
+              the official FBISE portal for educational and analytical purposes only. For official results and verification, visit{" "}
+              <a
+                href="https://portal.fbise.edu.pk/fbise-conduct/result/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold underline underline-offset-2 hover:text-amber-900"
+              >
+                https://portal.fbise.edu.pk/fbise-conduct/result/
+              </a>.
+            </p>
+          </div>
+        </div>
+
+        {/* Copyright line */}
+        <div className="px-4 py-4 sm:px-6 sm:py-5">
+          <p className="text-center text-xs text-slate-400">
+            FBISE Result Analyzer ·
+            Result data © Federal Board of Intermediate &amp; Secondary Education, Islamabad
+          </p>
+        </div>
       </footer>
     </div>
   );
