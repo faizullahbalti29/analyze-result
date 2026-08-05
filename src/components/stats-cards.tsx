@@ -67,7 +67,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
       icon: Clock,
       accent: "text-violet-700",
       iconBg: "bg-violet-500/10 text-violet-600",
-      description: "Fail, withheld & others",
+      description: "RW, RL, UFM & others",
     },
   ];
 
