@@ -1,21 +1,23 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Medal, Trophy } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Medal, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   cn,
   formatGrade,
   formatMarks,
   getCompartmentSubjects,
+  getFbiseUrl,
   getStatusColor,
   isCompartmentStatus,
 } from "@/lib/utils";
-import type { Student, TopLimit } from "@/lib/types";
+import type { ClassLevel, Student, TopLimit } from "@/lib/types";
 
 interface StudentTableProps {
   students: Student[];
   limit: TopLimit;
   onLimitChange: (limit: TopLimit) => void;
+  classLevel?: ClassLevel;
 }
 
 const LIMIT_OPTIONS: { value: TopLimit; label: string }[] = [
@@ -125,11 +127,14 @@ function CompartmentSubjects({ remarks }: { remarks: string | null }) {
 function StudentMobileCard({
   student,
   rank,
+  classLevel = "9th",
 }: {
   student: Student;
   rank: number;
+  classLevel?: ClassLevel;
 }) {
   const isCompartment = isCompartmentStatus(student.status);
+  const fbiseUrl = getFbiseUrl(student.roll_no, classLevel);
 
   return (
     <article className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
@@ -140,9 +145,16 @@ function StudentMobileCard({
             <h3 className="truncate font-semibold text-slate-900">
               {student.name}
             </h3>
-            <p className="mt-0.5 font-mono text-xs text-slate-500">
+            <a
+              href={fbiseUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-0.5 inline-flex items-center gap-1 font-mono text-xs text-teal-600 hover:text-teal-800 hover:underline"
+              title="Open Mark Sheet on FBISE portal"
+            >
               Roll: {student.roll_no}
-            </p>
+              <ExternalLink className="h-3 w-3 shrink-0 text-teal-500" />
+            </a>
           </div>
         </div>
         <StatusBadge status={student.status} />
@@ -189,6 +201,18 @@ function StudentMobileCard({
           )}
         </div>
       )}
+
+      <div className="mt-3 border-t border-slate-100 pt-3">
+        <a
+          href={fbiseUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-teal-50 px-3 py-2 text-xs font-semibold text-teal-700 transition-colors hover:bg-teal-100 active:bg-teal-200"
+        >
+          View Official Mark Sheet
+          <ExternalLink className="h-3.5 w-3.5" />
+        </a>
+      </div>
     </article>
   );
 }
@@ -284,6 +308,7 @@ export function StudentTable({
   students,
   limit,
   onLimitChange,
+  classLevel = "9th",
 }: StudentTableProps) {
   const [page, setPage] = useState(1);
 
@@ -354,6 +379,7 @@ export function StudentTable({
                 key={student._id}
                 student={student}
                 rank={rankOffset + index + 1}
+                classLevel={classLevel}
               />
             ))}
           </div>
@@ -384,11 +410,15 @@ export function StudentTable({
                   <th className="px-6 py-3.5 font-semibold text-slate-600">
                     Details
                   </th>
+                  <th className="px-6 py-3.5 font-semibold text-slate-600">
+                    Official Sheet
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {pageStudents.map((student, index) => {
                   const isCompartment = isCompartmentStatus(student.status);
+                  const fbiseUrl = getFbiseUrl(student.roll_no, classLevel);
 
                   return (
                     <tr
@@ -399,7 +429,16 @@ export function StudentTable({
                         <RankBadge rank={rankOffset + index + 1} />
                       </td>
                       <td className="px-6 py-4 font-mono text-slate-700">
-                        {student.roll_no}
+                        <a
+                          href={fbiseUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 hover:text-teal-700 hover:underline"
+                          title="Open Mark Sheet on FBISE portal"
+                        >
+                          {student.roll_no}
+                          <ExternalLink className="h-3 w-3 text-slate-400" />
+                        </a>
                       </td>
                       <td className="px-6 py-4 font-medium text-slate-900">
                         {student.name}
@@ -427,6 +466,17 @@ export function StudentTable({
                             {student.remarks ?? "—"}
                           </span>
                         )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <a
+                          href={fbiseUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50/60 px-3 py-1.5 text-xs font-semibold text-teal-700 transition-colors hover:bg-teal-100 hover:text-teal-900"
+                        >
+                          View Sheet
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
                       </td>
                     </tr>
                   );

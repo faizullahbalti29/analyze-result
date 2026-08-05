@@ -166,6 +166,7 @@ export function ResultAnalyzer() {
               students={displayedStudents}
               limit={topLimit}
               onLimitChange={setTopLimit}
+              classLevel={selectedClass}
             />
           </div>
         )}

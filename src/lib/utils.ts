@@ -1,8 +1,15 @@
 import { type ClassValue, clsx } from "clsx";
-import type { ResultStats, Student, TopLimit } from "./types";
+import type { ClassLevel, ResultStats, Student, TopLimit } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
   return clsx(inputs);
+}
+
+export function getFbiseUrl(rollNo: string, classLevel: ClassLevel = "9th"): string {
+  const is9th = classLevel === "9th";
+  const endpoint = is9th ? "Result-link-ssc1.php" : "Result-link-ssc2.php";
+  const annual = is9th ? "SSC-I" : "SSC-II";
+  return `https://portal.fbise.edu.pk/fbise-conduct/result/${endpoint}?rollNo=${encodeURIComponent(rollNo)}&annual=${annual}`;
 }
 
 export function normalizeStatus(status: string): string {
