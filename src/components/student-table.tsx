@@ -15,8 +15,8 @@ import type { ClassLevel, Student, TopLimit } from "@/lib/types";
 
 interface StudentTableProps {
   students: Student[];
-  limit: TopLimit;
-  onLimitChange: (limit: TopLimit) => void;
+  limit: string;
+  onLimitChange: (limit: string) => void;
   classLevel?: ClassLevel;
 }
 
@@ -27,14 +27,21 @@ const LIMIT_OPTIONS: { value: TopLimit; label: string }[] = [
   { value: 20, label: "Top 20" },
   { value: "all", label: "All" },
 ];
+const STATUS_LIMITS: { value: string, label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "PASS", label: "Pass" },
+  { value: "COMPT.", label: "Fail" },
+  { value: "ABSENT", label: "Absent" },
+  { value: "other", label: "Other" }
+];
 
 const PAGE_SIZE = 50;
 
-function RankBadge({ rank, size = "md" }: { rank: number; size?: "sm" | "md" }) {
+function RankBadge({ rank, size = "md", hideRank }: { rank: number; size?: "sm" | "md", hideRank?: boolean }) {
   const sizeClass = size === "sm" ? "h-7 w-7" : "h-8 w-8";
   const iconClass = size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4";
 
-  if (rank === 1) {
+  if (rank === 1 && !hideRank) {
     return (
       <span
         className={cn(
@@ -47,7 +54,7 @@ function RankBadge({ rank, size = "md" }: { rank: number; size?: "sm" | "md" }) 
     );
   }
 
-  if (rank === 2) {
+  if (rank === 2 && !hideRank) {
     return (
       <span
         className={cn(
@@ -60,7 +67,7 @@ function RankBadge({ rank, size = "md" }: { rank: number; size?: "sm" | "md" }) 
     );
   }
 
-  if (rank === 3) {
+  if (rank === 3 && !hideRank) {
     return (
       <span
         className={cn(
@@ -311,7 +318,7 @@ export function StudentTable({
   classLevel = "9th",
 }: StudentTableProps) {
   const [page, setPage] = useState(1);
-
+  console.log(students)
   // Reset to page 1 whenever the student list or limit changes
   useEffect(() => {
     setPage(1);
@@ -334,19 +341,19 @@ export function StudentTable({
               Student Results
             </h2>
             <p className="text-xs text-slate-500 sm:text-sm">
-              Ranked by marks —{" "}
+              Showing{" "}
               {limit === "all"
                 ? `all ${students.length} students`
-                : `top ${limit}`}
+                : `only ${limit?.toLowerCase()} students`}
             </p>
           </div>
 
           <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {LIMIT_OPTIONS.map((option) => (
+            {STATUS_LIMITS.map((option) => (
               <button
                 key={option.label}
                 type="button"
-                onClick={() => onLimitChange(option.value)}
+                onClick={() => { onLimitChange(option.value); setPage(1) }}
                 className={cn(
                   "shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all sm:text-sm",
                   limit === option.value
@@ -364,10 +371,10 @@ export function StudentTable({
       {students.length === 0 ? (
         <div className="px-4 py-12 text-center sm:px-6 sm:py-16">
           <p className="text-sm font-medium text-slate-600">
-            No students found for this institution
+            No students found for this institution or selected filter
           </p>
           <p className="mt-1 text-sm text-slate-400">
-            Select a different institution to view results
+            Select a different institution to view results or change the filters.
           </p>
         </div>
       ) : (
@@ -417,6 +424,9 @@ export function StudentTable({
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {pageStudents.map((student, index) => {
+                  // if ((limit === 3 || limit === 5 || limit === 10 || limit === 20) && student.status === "COMPT.") {
+                  //   return;
+                  // }
                   const isCompartment = isCompartmentStatus(student.status);
                   const fbiseUrl = getFbiseUrl(student.roll_no, classLevel);
 
@@ -426,7 +436,9 @@ export function StudentTable({
                       className="transition-colors hover:bg-teal-50/40"
                     >
                       <td className="px-6 py-4">
-                        <RankBadge rank={rankOffset + index + 1} />
+                        <RankBadge rank={rankOffset + index + 1}
+                          hideRank={limit === "COMPT." || limit === "ABSENT"}
+                        />
                       </td>
                       <td className="px-6 py-4 font-mono text-slate-700">
                         <a

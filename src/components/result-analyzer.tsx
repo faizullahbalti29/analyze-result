@@ -12,7 +12,7 @@ import { computeStats, getTopStudents } from "@/lib/utils";
 export function ResultAnalyzer() {
   const [selectedClass, setSelectedClass] = useState<ClassLevel>("9th");
   const [selectedInstitution, setSelectedInstitution] = useState("");
-  const [topLimit, setTopLimit] = useState<TopLimit>(10);
+  const [topLimit, setTopLimit] = useState<string>("all");
 
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [institutionsLoading, setInstitutionsLoading] = useState(false);
@@ -69,7 +69,7 @@ export function ResultAnalyzer() {
     },
     [],
   );
-
+  // console.log(topLimit)
   const [institutionQuery, setInstitutionQuery] = useState<string>("");
 
   // Debounce effect for query and class level changes (initial load & search)
@@ -86,16 +86,13 @@ export function ResultAnalyzer() {
 
   const stats = useMemo(() => computeStats(students), [students]);
 
-  const displayedStudents = useMemo(
-    () => getTopStudents(students, topLimit),
-    [students, topLimit],
-  );
+  const displayedStudents = topLimit === "all" ? students.sort((a, b) => (b.marks ?? 0) - (a.marks ?? 0)) : (topLimit === "PASS" ? students.filter((student) => student.status === "PASS").sort((a, b) => (b.marks ?? 0) - (a.marks ?? 0)) : topLimit === "COMPT." ? students.filter((student) => student.status === "COMPT.") : topLimit === "ABSENT" ? students.filter((student) => student.status === "Absent") : topLimit === "other" ? students.filter((student) => !["PASS", "COMPT.", "Absent"].includes(student.status)) : []);
 
   const handleClassChange = (value: ClassLevel) => {
     setSelectedClass(value);
     setSelectedInstitution("");
     setInstitutionQuery("");
-    setTopLimit(10);
+    setTopLimit("all");
     setStudents([]);
   };
 
@@ -185,6 +182,7 @@ export function ResultAnalyzer() {
               limit={topLimit}
               onLimitChange={setTopLimit}
               classLevel={selectedClass}
+            // fetchStudents={fetchStudents}
             />
           </div>
         )}

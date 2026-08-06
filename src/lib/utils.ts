@@ -53,7 +53,7 @@ export function computeStats(students: Student[]): ResultStats {
 
 export function getTopStudents(
   students: Student[],
-  limit: TopLimit,
+  limit: string,
 ): Student[] {
   const ranked = [...students].sort((a, b) => {
     const marksA = a.marks ?? -1;
@@ -65,7 +65,7 @@ export function getTopStudents(
     return ranked;
   }
 
-  return ranked.slice(0, limit);
+  return []
 }
 
 export function formatMarks(marks: number | null): string {
