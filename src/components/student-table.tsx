@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, ExternalLink, Medal, Trophy } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, ExternalLink, Medal, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   cn,
@@ -18,6 +18,8 @@ interface StudentTableProps {
   limit: string;
   onLimitChange: (limit: string) => void;
   classLevel?: ClassLevel;
+  institution?: string;
+  activeClass?: string
 }
 
 const LIMIT_OPTIONS: { value: TopLimit; label: string }[] = [
@@ -316,6 +318,8 @@ export function StudentTable({
   limit,
   onLimitChange,
   classLevel = "9th",
+  institution = "",
+  activeClass = "",
 }: StudentTableProps) {
   const [page, setPage] = useState(1);
   console.log(students)
@@ -331,7 +335,6 @@ export function StudentTable({
 
   // Global rank offset so rank numbers are continuous across pages
   const rankOffset = isPaginated ? (page - 1) * PAGE_SIZE : 0;
-
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm sm:rounded-2xl">
       <div className="border-b border-slate-100 px-4 py-4 sm:px-6 sm:py-5">
@@ -358,12 +361,22 @@ export function StudentTable({
                   "shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all sm:text-sm",
                   limit === option.value
                     ? "bg-teal-600 text-white shadow-sm shadow-teal-600/30"
-                    : "bg-slate-100 text-slate-600 active:bg-slate-200",
+                    : "bg-slate-100 text-slate-600 active:bg-slate-200 cursor-pointer",
                 )}
               >
                 {option.label}
               </button>
             ))}
+            {limit === "all" && institution && <div className={cn(
+              "shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all sm:text-sm",
+              "bg-teal-600 text-white shadow-sm shadow-teal-600/30 cursor-pointer ml-auto flex items-center gap-2 hover:bg-teal-500",
+            )}
+              onClick={() => {
+                window.open(`/api/export-excel?class=${classLevel}&institution=${institution}`, "_blank");
+              }}
+            >
+              <Download className="h-4 w-4 " />
+              <button>Export</button></div>}
           </div>
         </div>
       </div>

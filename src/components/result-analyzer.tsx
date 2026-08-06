@@ -182,6 +182,8 @@ export function ResultAnalyzer() {
               limit={topLimit}
               onLimitChange={setTopLimit}
               classLevel={selectedClass}
+              institution={selectedInstitution}
+              activeClass={selectedClass}
             // fetchStudents={fetchStudents}
             />
           </div>
