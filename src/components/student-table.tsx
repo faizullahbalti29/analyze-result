@@ -169,7 +169,7 @@ function StudentMobileCard({
             </a>
           </div>
         </div>
-        <StatusBadge status={student.status} />
+        {student.status ? <StatusBadge status={student.status} /> : "-"}
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
