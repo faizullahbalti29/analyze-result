@@ -15,11 +15,14 @@ import type { ClassLevel, Student, TopLimit } from "@/lib/types";
 
 interface StudentTableProps {
   students: Student[];
+  totalStudents: number;
+  page: number;
+  onPageChange: (page: number) => void;
   limit: string;
   onLimitChange: (limit: string) => void;
   classLevel?: ClassLevel;
   institution?: string;
-  activeClass?: string
+  activeClass?: string;
 }
 
 const LIMIT_OPTIONS: { value: TopLimit; label: string }[] = [
@@ -315,26 +318,18 @@ function Pagination({
 
 export function StudentTable({
   students,
+  totalStudents,
+  page,
+  onPageChange,
   limit,
   onLimitChange,
   classLevel = "9th",
   institution = "",
   activeClass = "",
 }: StudentTableProps) {
-  const [page, setPage] = useState(1);
-  console.log(students)
-  // Reset to page 1 whenever the student list or limit changes
-  useEffect(() => {
-    setPage(1);
-  }, [students, limit]);
-
-  const isPaginated = limit === "all" && students.length > PAGE_SIZE;
-  const pageStudents = isPaginated
-    ? students.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-    : students;
-
-  // Global rank offset so rank numbers are continuous across pages
-  const rankOffset = isPaginated ? (page - 1) * PAGE_SIZE : 0;
+  const isPaginated = totalStudents > PAGE_SIZE;
+  const pageStudents = students;
+  const rankOffset = (page - 1) * PAGE_SIZE;
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm sm:rounded-2xl">
       <div className="border-b border-slate-100 px-4 py-4 sm:px-6 sm:py-5">
@@ -344,10 +339,7 @@ export function StudentTable({
               Student Results
             </h2>
             <p className="text-xs text-slate-500 sm:text-sm">
-              Showing{" "}
-              {limit === "all"
-                ? `all ${students.length} students`
-                : `only ${limit?.toLowerCase()} students`}
+              Showing {students.length} of {totalStudents} students
             </p>
           </div>
 
@@ -356,7 +348,10 @@ export function StudentTable({
               <button
                 key={option.label}
                 type="button"
-                onClick={() => { onLimitChange(option.value); setPage(1) }}
+                onClick={() => {
+                  onLimitChange(option.value);
+                  onPageChange(1);
+                }}
                 className={cn(
                   "shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all sm:text-sm",
                   limit === option.value
@@ -367,16 +362,21 @@ export function StudentTable({
                 {option.label}
               </button>
             ))}
-            {limit === "all" && institution && <div className={cn(
-              "shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all sm:text-sm",
-              "bg-teal-600 text-white shadow-sm shadow-teal-600/30 cursor-pointer ml-auto flex items-center gap-2 hover:bg-teal-500",
+
+            {limit === "all" && institution && (
+              <div
+                className={cn(
+                  "shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all sm:text-sm",
+                  "bg-teal-600 text-white shadow-sm shadow-teal-600/30 cursor-pointer ml-auto flex items-center gap-2 hover:bg-teal-500",
+                )}
+                onClick={() => {
+                  window.open(`/api/export-excel?class=${classLevel}&institution=${institution}`, "_blank");
+                }}
+              >
+                <Download className="h-4 w-4" />
+                <span>Export</span>
+              </div>
             )}
-              onClick={() => {
-                window.open(`/api/export-excel?class=${classLevel}&institution=${institution}`, "_blank");
-              }}
-            >
-              <Download className="h-4 w-4 " />
-              <button>Export</button></div>}
           </div>
         </div>
       </div>
@@ -513,8 +513,8 @@ export function StudentTable({
           {/* ── Pagination bar (only when All + more than PAGE_SIZE) ── */}
           <Pagination
             current={page}
-            total={students.length}
-            onChange={setPage}
+            total={totalStudents}
+            onChange={onPageChange}
           />
         </>
       )}

@@ -22,12 +22,46 @@ export async function GET(request: Request) {
       );
     }
 
+    const status = searchParams.get("status") ?? "all";
+    const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
+    const pageSize = 50;
+
     await connectDB();
 
     const collection = classLevel === "9th" ? "nineth" : "tenth";
     const StudentModel = getStudentModel(collection);
 
-    const docs = await StudentModel.find({ institution }).lean();
+    const filter: Record<string, unknown> = { institution };
+
+    if (status !== "all") {
+      switch (status) {
+        case "PASS":
+          filter.status = "PASS";
+          break;
+        case "COMPT.":
+          filter.status = "COMPT.";
+          break;
+        case "ABSENT":
+          filter.status = "Absent";
+          break;
+        case "other":
+          filter.status = { $nin: ["PASS", "COMPT.", "Absent"] };
+          break;
+        default:
+          return NextResponse.json(
+            { error: 'Query param "status" must be one of "all", "PASS", "COMPT.", "ABSENT", or "other"' },
+            { status: 400 },
+          );
+      }
+    }
+
+    const total = await StudentModel.countDocuments(filter);
+    const docs = await StudentModel
+      .find(filter)
+      .sort({ marks: -1 })
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .lean();
 
     const students = docs.map((doc) => ({
       _id: String(doc._id),
@@ -40,7 +74,7 @@ export async function GET(request: Request) {
       institution: doc.institution,
     }));
 
-    return NextResponse.json({ students });
+    return NextResponse.json({ students, total, page, pageSize });
   } catch (error) {
     console.error("[GET /api/students]", error);
     return NextResponse.json(

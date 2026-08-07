@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ClassTabs } from "@/components/class-tabs";
 import { Header } from "@/components/header";
 import { InstitutionSelect } from "@/components/institution-select";
 import { StatsCards } from "@/components/stats-cards";
 import { StudentTable } from "@/components/student-table";
-import type { ClassLevel, Institution, Student, TopLimit } from "@/lib/types";
-import { computeStats, getTopStudents } from "@/lib/utils";
+import type { ClassLevel, Institution, ResultStats, Student, TopLimit } from "@/lib/types";
 
 export function ResultAnalyzer() {
   const [selectedClass, setSelectedClass] = useState<ClassLevel>("9th");
@@ -21,6 +20,15 @@ export function ResultAnalyzer() {
   const [students, setStudents] = useState<Student[]>([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [studentsError, setStudentsError] = useState<string | null>(null);
+  const [studentPage, setStudentPage] = useState(1);
+  const [studentTotal, setStudentTotal] = useState(0);
+  const [stats, setStats] = useState<ResultStats>({
+    total: 0,
+    pass: 0,
+    compartment: 0,
+    absent: 0,
+    other: 0,
+  });
 
   // Fetch institutions whenever class tab changes or search query updates
   const fetchInstitutions = useCallback(async (classLevel: ClassLevel, query: string = "") => {
@@ -45,24 +53,43 @@ export function ResultAnalyzer() {
 
   // Fetch students whenever institution selection changes
   const fetchStudents = useCallback(
-    async (classLevel: ClassLevel, institutionName: string) => {
+    async (
+      classLevel: ClassLevel,
+      institutionName: string,
+      status: string,
+      page: number,
+    ) => {
       if (!institutionName) {
         setStudents([]);
+        setStudentTotal(0);
         return;
       }
+
       setStudentsLoading(true);
       setStudentsError(null);
       try {
-        const res = await fetch(
-          `/api/students?class=${classLevel}&institution=${encodeURIComponent(institutionName)}`,
-        );
+        const url = new URL(`/api/students`, location.origin);
+        url.searchParams.append("class", classLevel);
+        url.searchParams.append("institution", institutionName);
+        url.searchParams.append("status", status);
+        url.searchParams.append("page", page.toString());
+
+        const res = await fetch(url.toString());
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json() as { students: Student[] };
+        const data = await res.json() as {
+          students: Student[];
+          total: number;
+          page: number;
+          pageSize: number;
+        };
+
         setStudents(data.students);
+        setStudentTotal(data.total ?? 0);
       } catch (err) {
         console.error(err);
         setStudentsError("Failed to load students.");
         setStudents([]);
+        setStudentTotal(0);
       } finally {
         setStudentsLoading(false);
       }
@@ -80,19 +107,58 @@ export function ResultAnalyzer() {
     return () => clearTimeout(handler);
   }, [selectedClass, institutionQuery, fetchInstitutions]);
 
+  const fetchStudentCounts = useCallback(
+    async (classLevel: ClassLevel, institutionName: string) => {
+      if (!institutionName) {
+        setStats({
+          total: 0,
+          pass: 0,
+          compartment: 0,
+          absent: 0,
+          other: 0,
+        });
+        return;
+      }
+
+      try {
+        const url = new URL(`/api/students/counts`, location.origin);
+        url.searchParams.append("class", classLevel);
+        url.searchParams.append("institution", institutionName);
+
+        const res = await fetch(url.toString());
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json() as { stats: ResultStats };
+        setStats(data.stats);
+      } catch (err) {
+        console.error(err);
+        setStats({
+          total: 0,
+          pass: 0,
+          compartment: 0,
+          absent: 0,
+          other: 0,
+        });
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
-    void fetchStudents(selectedClass, selectedInstitution);
-  }, [selectedClass, selectedInstitution, fetchStudents]);
+    void fetchStudents(selectedClass, selectedInstitution, topLimit, studentPage);
+  }, [selectedClass, selectedInstitution, topLimit, studentPage, fetchStudents]);
 
-  const stats = useMemo(() => computeStats(students), [students]);
-
-  const displayedStudents = topLimit === "all" ? students.sort((a, b) => (b.marks ?? 0) - (a.marks ?? 0)) : (topLimit === "PASS" ? students.filter((student) => student.status === "PASS").sort((a, b) => (b.marks ?? 0) - (a.marks ?? 0)) : topLimit === "COMPT." ? students.filter((student) => student.status === "COMPT.") : topLimit === "ABSENT" ? students.filter((student) => student.status === "Absent") : topLimit === "other" ? students.filter((student) => !["PASS", "COMPT.", "Absent"].includes(student.status)) : []);
+  useEffect(() => {
+    setStudentPage(1);
+    void fetchStudentCounts(selectedClass, selectedInstitution);
+  }, [selectedInstitution, selectedClass, fetchStudentCounts]);
 
   const handleClassChange = (value: ClassLevel) => {
     setSelectedClass(value);
     setSelectedInstitution("");
     setInstitutionQuery("");
     setTopLimit("all");
+    setStudentPage(1);
+    setStudentTotal(0);
     setStudents([]);
   };
 
@@ -178,13 +244,18 @@ export function ResultAnalyzer() {
 
             <StatsCards stats={stats} />
             <StudentTable
-              students={displayedStudents}
+              students={students}
+              totalStudents={studentTotal}
+              page={studentPage}
               limit={topLimit}
-              onLimitChange={setTopLimit}
+              onLimitChange={(value) => {
+                setTopLimit(value);
+                setStudentPage(1);
+              }}
+              onPageChange={setStudentPage}
               classLevel={selectedClass}
               institution={selectedInstitution}
               activeClass={selectedClass}
-            // fetchStudents={fetchStudents}
             />
           </div>
         )}
