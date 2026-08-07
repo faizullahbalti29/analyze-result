@@ -13,7 +13,7 @@ export function getFbiseUrl(rollNo: string, classLevel: ClassLevel = "9th"): str
 }
 
 export function normalizeStatus(status: string): string {
-  return status.trim().toUpperCase().replace(/\.$/, "");
+  return status?.trim().toUpperCase().replace(/\.$/, "");
 }
 
 export function isCompartmentStatus(status: string): boolean {
@@ -78,7 +78,7 @@ export function formatGrade(grade: string | null): string {
 
 export function getCompartmentSubjects(remarks: string | null): string[] {
   if (!remarks) return [];
-  return remarks.trim().split(/\s+/).filter(Boolean);
+  return remarks?.trim().split(/\s+/).filter(Boolean);
 }
 
 export function getStatusColor(status: string): string {
