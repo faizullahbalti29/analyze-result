@@ -32,7 +32,7 @@ export async function GET(request: Request) {
       StudentModel.countDocuments({ institution, status: "PASS" }),
       StudentModel.countDocuments({
         institution,
-        status: { $in: ["COMPT.", "COMP", "COMPARTMENT"] },
+        status: { $in: ["COMPT.", "COMP", "COMPARTMENT", "FAIL"] },
       }),
       StudentModel.countDocuments({ institution, status: "Absent" }),
     ]);

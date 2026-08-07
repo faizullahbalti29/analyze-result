@@ -469,7 +469,7 @@ export function StudentTable({
                         {student.name}
                       </td>
                       <td className="px-6 py-4">
-                        <StatusBadge status={student.status} />
+                       { student.status ? <StatusBadge status={student.status} /> : "-" }
                       </td>
                       <td className="px-6 py-4 font-semibold tabular-nums text-slate-800">
                         {formatMarks(student.marks)}
