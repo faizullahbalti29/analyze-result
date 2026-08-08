@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
-import { getInstitutionModel } from "@/lib/models/Institution";
+import { getStudentModel } from "@/lib/models/Student";
 import Fuse from "fuse.js";
 
 export async function GET(request: Request) {
@@ -18,23 +18,21 @@ export async function GET(request: Request) {
 
     await connectDB();
 
-    const collection =
-      classLevel === "9th" ? "nineth_institutions" : "tenth_institutions";
+    const collection = classLevel === "9th" ? "nineth" : "tenth";
+    const StudentModel = getStudentModel(collection);
 
-    const InstitutionModel = getInstitutionModel(collection);
+    const distinctInstitutions = await StudentModel.distinct<string>("institution", {
+      institution: { $exists: true, $ne: "" },
+    });
+
+    const normalizedInstitutions = distinctInstitutions
+      .filter((name): name is string => Boolean(name))
+      .map((name) => ({ _id: name, name }));
+
+    let institutions = normalizedInstitutions;
 
     if (query) {
-      // Fetch all institutions from collection to perform fuzzy search on full dataset
-      const docs = await InstitutionModel.find({}).lean();
-      const allInstitutions = docs.map((doc) => ({
-        _id: String(doc._id),
-        name:
-          classLevel === "9th"
-            ? (doc.institution ?? "")
-            : (doc.name ?? ""),
-      }));
-
-      const fuse = new Fuse(allInstitutions, {
+      const fuse = new Fuse(normalizedInstitutions, {
         keys: ["name"],
         threshold: 0.4,
         distance: 200,
@@ -42,20 +40,12 @@ export async function GET(request: Request) {
         shouldSort: true,
       });
 
-      const results = fuse.search(query);
-      const matched = results.slice(0, 50).map((res) => res.item);
-      return NextResponse.json({ institutions: matched });
+      institutions = fuse.search(query).slice(0, 50).map((res) => res.item);
+    } else {
+      institutions = normalizedInstitutions
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .slice(0, 50);
     }
-
-    // Default: fetch first 50 institutions when no query is provided
-    const docs = await InstitutionModel.find({}).limit(50).lean();
-    const institutions = docs.map((doc) => ({
-      _id: String(doc._id),
-      name:
-        classLevel === "9th"
-          ? (doc.institution ?? "")
-          : (doc.name ?? ""),
-    }));
 
     return NextResponse.json({ institutions });
   } catch (error) {
