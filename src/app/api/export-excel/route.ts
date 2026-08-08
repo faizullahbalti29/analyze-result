@@ -32,18 +32,17 @@ export async function GET(request: Request) {
             .select("-__v")
             .lean();
         const students = docs.map((doc) => ({
-            roll_no: doc.roll_no,
-            name: doc.name,
-            status: doc.status,
-            marks: doc.marks ?? null,
-            grade: doc.grade ?? null,
-            remarks: doc.remarks ?? null,
-            // institution: doc.institution,
+            "Roll no": doc.roll_no,
+            Name: doc.name,
+            Status: doc.status,
+            Marks: doc.marks ?? null,
+            Grade: doc.grade ?? null,
+            Remarks: doc.remarks ?? null,
         }));
 
-        const passCount = students.filter((student) => student.status === "PASS").length;
-        const compartmentCount = students.filter((student) => student.status === "COMPT.").length;
-        const absentCount = students.filter((student) => student.status === "Absent").length;
+        const passCount = students.filter((student) => student.Status === "PASS").length;
+        const compartmentCount = students.filter((student) => student.Status === "COMPT.").length;
+        const absentCount = students.filter((student) => student.Status === "Absent").length;
         const otherCount = students.length - passCount - compartmentCount - absentCount;
 
         const headerRows = [
