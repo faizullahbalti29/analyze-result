@@ -14,6 +14,7 @@ import type { ResultStats } from "@/lib/types";
 
 interface StatsCardsProps {
   stats: ResultStats;
+  loading?: boolean;
 }
 
 interface StatCard {
@@ -25,7 +26,7 @@ interface StatCard {
   description: string;
 }
 
-export function StatsCards({ stats }: StatsCardsProps) {
+export function StatsCards({ stats, loading = false }: StatsCardsProps) {
   const passRate = getPassRate(stats);
 
   const cards: StatCard[] = [
@@ -89,40 +90,40 @@ export function StatsCards({ stats }: StatsCardsProps) {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5">
-        {cards.map((card) => (
-          <div
-            key={card.label}
-            className={cn(
-              "group relative overflow-hidden rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-sm transition-all sm:rounded-2xl sm:p-5 sm:hover:-translate-y-0.5 sm:hover:shadow-md sm:hover:shadow-teal-900/5",
-              card.label === "Other Status" && "col-span-2 sm:col-span-1",
-            )}
-          >
-            <div className="relative">
+        {loading
+          ? Array.from({ length: cards.length }, (_, index) => (
               <div
-                className={cn(
-                  "mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg sm:mb-4 sm:h-10 sm:w-10 sm:rounded-xl",
-                  card.iconBg,
-                )}
+                key={index}
+                className="group relative overflow-hidden rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-sm transition-all sm:rounded-2xl sm:p-5 sm:hover:-translate-y-0.5 sm:hover:shadow-md sm:hover:shadow-teal-900/5"
               >
-                <card.icon className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2} />
+                <div className="relative">
+                  <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-200 sm:mb-4 sm:h-10 sm:w-10 sm:rounded-xl" />
+                  <p className="text-xs font-medium sm:text-sm h-3.5 w-24 rounded-full bg-slate-200" />
+                  <p className="mt-0.5 text-2xl font-bold tracking-tight sm:mt-1 sm:text-3xl bg-slate-200 text-transparent">000</p>
+                  <p className="mt-1 hidden text-xs text-slate-400 sm:mt-2 sm:block h-3.5 w-28 rounded-full bg-slate-200 text-transparent" />
+                </div>
               </div>
-              <p className="text-xs font-medium text-slate-500 sm:text-sm">
-                {card.label}
-              </p>
-              <p
+            ))
+          : cards.map((card) => (
+              <div
+                key={card.label}
                 className={cn(
-                  "mt-0.5 text-2xl font-bold tracking-tight sm:mt-1 sm:text-3xl",
-                  card.accent,
+                  "group relative overflow-hidden rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-sm transition-all sm:rounded-2xl sm:p-5 sm:hover:-translate-y-0.5 sm:hover:shadow-md sm:hover:shadow-teal-900/5",
+                  card.label === "Other Status" && "col-span-2 sm:col-span-1",
                 )}
               >
-                {card.value}
-              </p>
-              <p className="mt-1 hidden text-xs text-slate-400 sm:mt-2 sm:block">
-                {card.description}
-              </p>
-            </div>
-          </div>
-        ))}
+                <div className="relative">
+                  <div className={cn("mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg sm:mb-4 sm:h-10 sm:w-10 sm:rounded-xl", card.iconBg)}>
+                    <card.icon className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2} />
+                  </div>
+                  <p className="text-xs font-medium sm:text-sm">{card.label}</p>
+                  <p className={cn("mt-0.5 text-2xl font-bold tracking-tight sm:mt-1 sm:text-3xl", card.accent)}>
+                    {card.value}
+                  </p>
+                  <p className="mt-1 hidden text-xs text-slate-400 sm:mt-2 sm:block">{card.description}</p>
+                </div>
+              </div>
+            ))}
       </div>
     </div>
   );

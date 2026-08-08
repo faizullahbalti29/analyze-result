@@ -29,6 +29,7 @@ export function ResultAnalyzer() {
     absent: 0,
     other: 0,
   });
+  const [statsLoading, setStatsLoading] = useState(false);
 
   // Fetch institutions whenever class tab changes or search query updates
   const fetchInstitutions = useCallback(async (classLevel: ClassLevel, query: string = "") => {
@@ -117,9 +118,11 @@ export function ResultAnalyzer() {
           absent: 0,
           other: 0,
         });
+        setStatsLoading(false);
         return;
       }
 
+      setStatsLoading(true);
       try {
         const url = new URL(`/api/students/counts`, location.origin);
         url.searchParams.append("class", classLevel);
@@ -138,6 +141,8 @@ export function ResultAnalyzer() {
           absent: 0,
           other: 0,
         });
+      } finally {
+        setStatsLoading(false);
       }
     },
     [],
@@ -242,7 +247,7 @@ export function ResultAnalyzer() {
               </span>
             </div>
 
-            <StatsCards stats={stats} />
+            <StatsCards stats={stats} loading={statsLoading} />
             <StudentTable
               students={students}
               totalStudents={studentTotal}
