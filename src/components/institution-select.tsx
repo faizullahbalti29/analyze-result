@@ -74,9 +74,8 @@ export function InstitutionSelect({
               const rect = buttonRef.current?.getBoundingClientRect() ?? null;
               setAnchorRect(rect);
               const vw = typeof window !== "undefined" ? window.innerWidth : 1024;
-              const maxWidth = Math.min(vw - 48, 900);
-              const initial = rect ? Math.min(rect.width, maxWidth) : Math.min(640, maxWidth);
-              const width = Math.max(480, initial);
+              const maxWidth = Math.min(vw - 32, 900);
+              const width = rect ? Math.min(Math.max(rect.width, 280), maxWidth) : Math.min(480, maxWidth);
               setPortalStyle({ position: "fixed", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width, zIndex: 60, maxHeight: "80vh" });
               setOpen(true);
             }}
