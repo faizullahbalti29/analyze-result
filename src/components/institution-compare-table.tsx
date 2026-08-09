@@ -1,79 +1,102 @@
 "use client";
 
 import type { CompareInstitutionResult } from "@/lib/types";
-import { cn, formatGrade } from "@/lib/utils";
-import { ExternalLink } from "lucide-react";
 
 interface InstitutionCompareTableProps {
   results: CompareInstitutionResult[];
 }
 
 export function InstitutionCompareTable({ results }: InstitutionCompareTableProps) {
+  const topStudentRows = results.flatMap((res) =>
+    res.topStudents.map((s) => ({
+      institution: res.institution,
+      roll_no: s.roll_no,
+      name: s.name,
+      marks: s.marks,
+      percentage: s.percentage,
+    })),
+  );
+
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 xl:grid-cols-2">
-        {results.map((institution) => (
-          <div key={institution.code} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  {institution.code}
-                </p>
-                <h2 className="truncate text-base font-semibold text-slate-900">
-                  {institution.institution}
-                </h2>
-              </div>
-              <span className="inline-flex items-center rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700 ring-1 ring-teal-200">
-                Class 10th
-              </span>
-            </div>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              {Object.entries(institution.groups.total.grades).map(([grade, count]) => (
-                <div key={grade} className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-center">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{grade}</p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-900">{count}</p>
-                </div>
+      {/* Institutions summary table */}
+      <div className="overflow-auto rounded-2xl border border-slate-200 bg-white">
+        <div className="min-w-[900px]">
+          <table className="min-w-full divide-y divide-slate-100">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold text-slate-500">Code</th>
+                <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold text-slate-500">Institution</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">Enrolled</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">Pass</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">Fail</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">Absent</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">Appd</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">UFM</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">RL</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">Pass %</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">GPA</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">A1</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">A</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">B</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">C</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">D</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">E</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 bg-white">
+              {results.map((r) => (
+                <tr key={r.code} className="group hover:bg-slate-50">
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-700">{r.code}</td>
+                  <td className="whitespace-nowrap px-4 py-3 max-w-xl truncate text-sm font-semibold text-slate-900">{r.institution}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.enrolled}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.pass}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.fail ?? 0}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.absent}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.appd}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.ufm}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.rl}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{Number(r.groups.total.pass_percentage).toFixed(2)}%</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{Number(r.groups.total.gpa).toFixed(2)}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.grades.A1 ?? 0}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.grades.A ?? 0}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.grades.B ?? 0}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.grades.C ?? 0}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.grades.D ?? 0}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.grades.E ?? 0}</td>
+                </tr>
               ))}
-            </div>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-            <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-700 sm:grid-cols-3">
-              <div className="rounded-2xl bg-slate-50 p-3">
-                <p className="text-xs uppercase tracking-wide text-slate-500">Enrolled</p>
-                <p className="mt-2 text-xl font-semibold text-slate-900">{institution.groups.total.enrolled}</p>
-              </div>
-              <div className="rounded-2xl bg-slate-50 p-3">
-                <p className="text-xs uppercase tracking-wide text-slate-500">Pass</p>
-                <p className="mt-2 text-xl font-semibold text-slate-900">{institution.groups.total.pass}</p>
-              </div>
-              <div className="rounded-2xl bg-slate-50 p-3">
-                <p className="text-xs uppercase tracking-wide text-slate-500">Pass %</p>
-                <p className="mt-2 text-xl font-semibold text-slate-900">{institution.groups.total.pass_percentage.toFixed(2)}%</p>
-              </div>
-            </div>
-
-            <div className="mt-6 overflow-hidden rounded-3xl border border-slate-200">
-              <div className="bg-slate-100 px-4 py-3 text-sm font-semibold uppercase tracking-wide text-slate-600">
-                Top Students
-              </div>
-              <div className="divide-y divide-slate-200 bg-white">
-                {institution.topStudents.map((student, index) => (
-                  <div key={student._id} className="flex flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-900">{student.name}</p>
-                      <p className="mt-1 text-xs text-slate-500">Roll No: {student.roll_no}</p>
-                    </div>
-                    <div className="grid gap-2 sm:grid-cols-3 sm:text-right">
-                      <p className="text-sm text-slate-700">Marks: {student.marks ?? "—"}</p>
-                      <p className="text-sm text-slate-700">%: {student.percentage?.toFixed(2) ?? "—"}</p>
-                      <p className="text-sm text-slate-700">Rank: {index + 1}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        ))}
+      {/* Top students table */}
+      <div className="overflow-auto rounded-2xl border border-slate-200 bg-white">
+        <div className="min-w-[640px]">
+          <table className="min-w-full divide-y divide-slate-100">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold text-slate-500">Institution</th>
+                <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold text-slate-500">Roll No</th>
+                <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold text-slate-500">Name</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">Marks</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">%</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 bg-white">
+              {topStudentRows.sort((a, b) => (b?.marks || 0) - (a?.marks || 0)).map((s, idx) => (
+                <tr key={`${s.institution}-${s.roll_no}-${idx}`} className="hover:bg-slate-50">
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-700 max-w-xs truncate">{s.institution}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-700">{s.roll_no}</td>
+                  <td className="px-4 py-3 text-sm text-slate-900 truncate">{s.name}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{s.marks ?? "—"}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{s.percentage != null ? s.percentage.toFixed(2) + "%" : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
