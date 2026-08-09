@@ -1,21 +1,29 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { AnalysisModeSelect } from "@/components/analysis-mode-select";
 import { ClassTabs } from "@/components/class-tabs";
 import { Header } from "@/components/header";
 import { InstitutionSelect } from "@/components/institution-select";
+import { InstitutionCompareTable } from "@/components/institution-compare-table";
+import { MultiInstitutionSelect } from "@/components/multi-institution-select";
 import { StatsCards } from "@/components/stats-cards";
 import { StudentTable } from "@/components/student-table";
-import type { ClassLevel, Institution, ResultStats, Student, TopLimit } from "@/lib/types";
+import type { AnalysisMode, ClassLevel, CompareInstitutionResult, Institution, ResultStats, Student, TopLimit } from "@/lib/types";
 
 export function ResultAnalyzer() {
   const [selectedClass, setSelectedClass] = useState<ClassLevel>("9th");
+  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>("result");
   const [selectedInstitution, setSelectedInstitution] = useState("");
+  const [selectedInstitutions, setSelectedInstitutions] = useState<string[]>([]);
   const [topLimit, setTopLimit] = useState<string>("all");
 
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [institutionsLoading, setInstitutionsLoading] = useState(false);
   const [institutionsError, setInstitutionsError] = useState<string | null>(null);
+  const [compareResults, setCompareResults] = useState<CompareInstitutionResult[]>([]);
+  const [compareLoading, setCompareLoading] = useState(false);
+  const [compareError, setCompareError] = useState<string | null>(null);
 
   const [students, setStudents] = useState<Student[]>([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
@@ -108,6 +116,34 @@ export function ResultAnalyzer() {
     return () => clearTimeout(handler);
   }, [selectedClass, institutionQuery, fetchInstitutions]);
 
+  const fetchCompareResults = useCallback(async (selectedInstitutions: string[]) => {
+    if (selectedInstitutions.length === 0) {
+      setCompareResults([]);
+      setCompareError(null);
+      return;
+    }
+
+    setCompareLoading(true);
+    setCompareError(null);
+
+    try {
+      const url = new URL(`/api/tenth-institutions/compare`, location.origin);
+      selectedInstitutions.forEach((institution) => {
+        url.searchParams.append("institution", institution);
+      });
+      const res = await fetch(url.toString());
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json() as { results: CompareInstitutionResult[] };
+      setCompareResults(data.results);
+    } catch (err) {
+      console.error(err);
+      setCompareError("Failed to fetch compare results.");
+      setCompareResults([]);
+    } finally {
+      setCompareLoading(false);
+    }
+  }, []);
+
   const fetchStudentCounts = useCallback(
     async (classLevel: ClassLevel, institutionName: string) => {
       if (!institutionName) {
@@ -149,13 +185,28 @@ export function ResultAnalyzer() {
   );
 
   useEffect(() => {
-    void fetchStudents(selectedClass, selectedInstitution, topLimit, studentPage);
-  }, [selectedClass, selectedInstitution, topLimit, studentPage, fetchStudents]);
+    if (analysisMode === "result") {
+      void fetchStudents(selectedClass, selectedInstitution, topLimit, studentPage);
+    }
+  }, [analysisMode, selectedClass, selectedInstitution, topLimit, studentPage, fetchStudents]);
 
   useEffect(() => {
-    setStudentPage(1);
-    void fetchStudentCounts(selectedClass, selectedInstitution);
-  }, [selectedInstitution, selectedClass, fetchStudentCounts]);
+    if (analysisMode === "result") {
+      setStudentPage(1);
+      void fetchStudentCounts(selectedClass, selectedInstitution);
+    }
+  }, [analysisMode, selectedInstitution, selectedClass, fetchStudentCounts]);
+
+  useEffect(() => {
+    if (analysisMode === "institution") {
+      setSelectedInstitution("");
+      setTopLimit("all");
+      setStudentPage(1);
+      setStudentTotal(0);
+      setStudents([]);
+      void fetchCompareResults(selectedInstitutions);
+    }
+  }, [analysisMode, selectedInstitutions, fetchCompareResults]);
 
   const handleClassChange = (value: ClassLevel) => {
     setSelectedClass(value);
@@ -183,17 +234,73 @@ export function ResultAnalyzer() {
           )}
         </div>
 
-        <section className="mb-6 sm:mb-8">
-          <InstitutionSelect
-            institutions={institutions}
-            loading={institutionsLoading}
-            value={selectedInstitution}
-            onChange={setSelectedInstitution}
-            onSearch={setInstitutionQuery}
-          />
+        <section className="mb-6 sm:mb-8 grid gap-4 xl:grid-cols-[280px_1fr]">
+          <div>
+            <AnalysisModeSelect
+              value={analysisMode}
+              onChange={setAnalysisMode}
+              disabled={selectedClass !== "10th"}
+            />
+          </div>
+
+          {analysisMode === "result" ? (
+            <InstitutionSelect
+              institutions={institutions}
+              loading={institutionsLoading}
+              value={selectedInstitution}
+              onChange={setSelectedInstitution}
+              onSearch={setInstitutionQuery}
+            />
+          ) : (
+            <MultiInstitutionSelect
+              institutions={institutions}
+              loading={institutionsLoading}
+              selected={selectedInstitutions}
+              onChange={setSelectedInstitutions}
+              onSearch={setInstitutionQuery}
+            />
+          )}
         </section>
 
-        {!selectedInstitution ? (
+        {analysisMode === "institution" ? (
+          <div className="animate-fade-in space-y-6 sm:space-y-8">
+            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-teal-200/70 bg-teal-50/50 px-4 py-3 sm:px-5">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <span className="shrink-0 flex h-8 w-8 items-center justify-center rounded-lg bg-teal-100 text-teal-600">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-teal-600">Institution Compare</p>
+                  <p className="truncate text-sm font-semibold text-slate-800">
+                    Comparing {selectedInstitutions.length} institutions
+                  </p>
+                </div>
+              </div>
+              <span className="shrink-0 inline-flex items-center rounded-full bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-700 ring-1 ring-teal-200">
+                Class 10th only
+              </span>
+            </div>
+
+            {compareError ? (
+              <div className="rounded-xl border border-rose-200/80 bg-rose-50/80 px-4 py-3 text-sm text-rose-800">
+                {compareError}
+              </div>
+            ) : compareLoading ? (
+              <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white/60 px-6">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-200 border-t-teal-600" />
+                <p className="text-sm text-slate-500">Loading comparison…</p>
+              </div>
+            ) : compareResults.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 px-6 py-10 text-center text-slate-500">
+                Select up to 5 institutions to compare their 10th class summaries and top students.
+              </div>
+            ) : (
+              <InstitutionCompareTable results={compareResults} />
+            )}
+          </div>
+        ) : !selectedInstitution ? (
           <div className="flex min-h-[320px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white/60 px-6 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-100 text-teal-600">
               <svg

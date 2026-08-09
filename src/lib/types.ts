@@ -35,3 +35,49 @@ export interface ResultStats {
 }
 
 export type TopLimit = 3 | 5 | 10 | 20 | "all";
+
+export type AnalysisMode = "result" | "institution";
+
+export interface TenthSubjectGroup {
+  enrolled: number;
+  absent: number;
+  appd: number;
+  rl: number;
+  ufm: number;
+  fail: number;
+  pass: number;
+  grades: {
+    A1: number;
+    A: number;
+    B: number;
+    C: number;
+    D: number;
+    E: number;
+  };
+  pass_percentage: number;
+  gpa: number;
+}
+
+export interface TenthInstitution {
+  _id: string;
+  code: string;
+  institution: string;
+  groups: {
+    science: TenthSubjectGroup;
+    humanities: TenthSubjectGroup;
+    total: TenthSubjectGroup;
+  };
+}
+
+export interface CompareInstitutionResult {
+  institution: string;
+  code: string;
+  groups: TenthInstitution["groups"];
+  topStudents: {
+    _id: string;
+    roll_no: string;
+    name: string;
+    marks: number | null;
+    percentage: number | null;
+  }[];
+}
