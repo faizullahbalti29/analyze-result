@@ -1,7 +1,8 @@
 "use client";
 
 import { Building2, Check, ChevronDown, Loader2, Search, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import type { Institution } from "@/lib/types";
 
@@ -22,6 +23,8 @@ export function MultiInstitutionSelect({
 }: MultiInstitutionSelectProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   const selectedSet = new Set(selected);
 
@@ -52,6 +55,7 @@ export function MultiInstitutionSelect({
 
   const handleClose = () => {
     setOpen(false);
+    setAnchorRect(null);
     if (query) {
       setQuery("");
       onSearch?.("");
@@ -76,8 +80,14 @@ export function MultiInstitutionSelect({
       </label>
 
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => !loading && setOpen(true)}
+        onClick={() => {
+          if (loading) return;
+          const rect = buttonRef.current?.getBoundingClientRect() ?? null;
+          setAnchorRect(rect);
+          setOpen(true);
+        }}
         disabled={loading}
         className={cn(
           "flex w-full items-center justify-between gap-3 rounded-xl border bg-white px-4 py-3 text-left shadow-sm transition-all",
@@ -125,82 +135,85 @@ export function MultiInstitutionSelect({
         </div>
       )}
 
-      {open && (
+      {open && anchorRect && (
         <>
-          <div
-            className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-[2px] sm:bg-slate-900/20"
-            onClick={handleClose}
-            aria-hidden
-          />
+          {createPortal(
+            <div
+              className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-[2px]"
+              onClick={handleClose}
+              aria-hidden
+            />,
+            document.body,
+          )}
 
-          <div className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] flex-col rounded-t-2xl border border-slate-200 bg-white shadow-2xl sm:absolute sm:inset-auto sm:mt-2 sm:max-h-96 sm:w-full sm:rounded-xl">
-            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 sm:hidden">
-              <p className="text-sm font-semibold text-slate-900">Compare Institutions</p>
-              <button
-                type="button"
-                onClick={handleClose}
-                className="rounded-lg p-1.5 text-slate-500 active:bg-slate-100"
-                aria-label="Close"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="border-b border-slate-100 p-3">
-              <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2.5 ring-1 ring-slate-200">
-                <Search className="h-4 w-4 shrink-0 text-slate-400" />
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(event) => {
-                    const nextVal = event.target.value;
-                    setQuery(nextVal);
-                    onSearch?.(nextVal);
-                  }}
-                  placeholder="Search institutions…"
-                  className="w-full bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400 sm:text-sm"
-                  autoFocus
-                />
-                {loading && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-teal-500" />}
-              </div>
-              <p className="mt-2 text-xs text-slate-500">
-                Select up to 5 class 10th institutions to compare their totals and top students.
-              </p>
-            </div>
-
-            <div className="flex flex-1 flex-col overflow-y-auto py-1">
-              {institutions.length === 0 ? (
-                <div className="px-4 py-8 text-center text-sm text-slate-500">
-                  No institution matches "{query}".
+          {createPortal(
+            <div
+              style={{
+                position: "fixed",
+                left: anchorRect.left,
+                top: anchorRect.bottom + 8,
+                width: anchorRect.width,
+                zIndex: 60,
+                maxHeight: "60vh",
+              }}
+              className="rounded-xl border border-slate-200 bg-white shadow-2xl overflow-hidden"
+              role="dialog"
+            >
+              <div className="border-b border-slate-100 p-3">
+                <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2.5 ring-1 ring-slate-200">
+                  <Search className="h-4 w-4 shrink-0 text-slate-400" />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(event) => {
+                      const nextVal = event.target.value;
+                      setQuery(nextVal);
+                      onSearch?.(nextVal);
+                    }}
+                    placeholder="Search institutions…"
+                    className="w-full bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400 sm:text-sm"
+                    autoFocus
+                  />
+                  {loading && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-teal-500" />}
                 </div>
-              ) : (
-                <ul className="space-y-1 px-3 pb-4">
-                  {institutions.map((institution) => {
-                    const isSelected = selectedSet.has(institution.name);
-                    return (
-                      <li key={institution._id}>
-                        <button
-                          type="button"
-                          onClick={() => toggleSelection(institution.name)}
-                          className={cn(
-                            "flex w-full items-center justify-between rounded-2xl border px-3 py-3 text-left text-sm transition-all",
-                            isSelected
-                              ? "border-teal-300 bg-teal-50 text-teal-900"
-                              : "border-slate-200 bg-white text-slate-900 hover:border-teal-200 hover:bg-teal-50/50",
-                          )}
-                        >
-                          <span className="min-w-0 truncate">{institution.name}</span>
-                          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-400 ring-1 ring-slate-200">
-                            {isSelected ? <Check className="h-4 w-4" /> : selected.length >= 5 ? "-" : ""}
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          </div>
+                <p className="mt-2 text-xs text-slate-500">
+                  Select up to 5 class 10th institutions to compare their totals and top students.
+                </p>
+              </div>
+
+              <div className="overflow-y-auto py-1 max-h-[60vh]">
+                {institutions.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-sm text-slate-500">No institution matches "{query}".</div>
+                ) : (
+                  <ul className="divide-y divide-slate-100">
+                    {institutions.map((institution) => {
+                      const isSelected = selectedSet.has(institution.name);
+                      return (
+                        <li key={institution._id}>
+                          <button
+                            type="button"
+                            onClick={() => toggleSelection(institution.name)}
+                            className={cn(
+                              "flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors",
+                              isSelected
+                                ? "bg-teal-50 text-teal-900"
+                                : "text-slate-900 hover:bg-teal-50/40",
+                            )}
+                          >
+                            <span className="min-w-0 truncate">{institution.name}</span>
+                            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-400 ring-1 ring-slate-200">
+                              {isSelected ? <Check className="h-4 w-4" /> : selected.length >= 5 ? "-" : ""}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            </div>,
+            document.body,
+          )}
         </>
       )}
     </div>

@@ -216,6 +216,11 @@ export function ResultAnalyzer() {
     setStudentPage(1);
     setStudentTotal(0);
     setStudents([]);
+    // If switching to 9th class, force result analysis and clear any institution-compare selections
+    if (value === "9th") {
+      setAnalysisMode("result");
+      setSelectedInstitutions([]);
+    }
   };
 
   return (
@@ -234,16 +239,43 @@ export function ResultAnalyzer() {
           )}
         </div>
 
-        <section className="mb-6 sm:mb-8 grid gap-4 xl:grid-cols-[280px_1fr]">
-          <div>
-            <AnalysisModeSelect
-              value={analysisMode}
-              onChange={setAnalysisMode}
-              disabled={selectedClass !== "10th"}
-            />
-          </div>
+        <section
+          className={
+            selectedClass === "9th"
+              ? "mb-6 sm:mb-8 grid gap-4 grid-cols-1"
+              : "mb-6 sm:mb-8 grid gap-4 xl:grid-cols-[280px_1fr]"
+          }
+        >
+          {selectedClass !== "9th" ? (
+            <>
+              <div>
+                <AnalysisModeSelect
+                  value={analysisMode}
+                  onChange={setAnalysisMode}
+                  disabled={selectedClass !== "10th"}
+                />
+              </div>
 
-          {analysisMode === "result" ? (
+              {analysisMode === "result" ? (
+                <InstitutionSelect
+                  institutions={institutions}
+                  loading={institutionsLoading}
+                  value={selectedInstitution}
+                  onChange={setSelectedInstitution}
+                  onSearch={setInstitutionQuery}
+                />
+              ) : (
+                <MultiInstitutionSelect
+                  institutions={institutions}
+                  loading={institutionsLoading}
+                  selected={selectedInstitutions}
+                  onChange={setSelectedInstitutions}
+                  onSearch={setInstitutionQuery}
+                />
+              )}
+            </>
+          ) : (
+            // 9th class: show only the institution select full width
             <InstitutionSelect
               institutions={institutions}
               loading={institutionsLoading}
@@ -251,37 +283,11 @@ export function ResultAnalyzer() {
               onChange={setSelectedInstitution}
               onSearch={setInstitutionQuery}
             />
-          ) : (
-            <MultiInstitutionSelect
-              institutions={institutions}
-              loading={institutionsLoading}
-              selected={selectedInstitutions}
-              onChange={setSelectedInstitutions}
-              onSearch={setInstitutionQuery}
-            />
           )}
         </section>
 
         {analysisMode === "institution" ? (
           <div className="animate-fade-in space-y-6 sm:space-y-8">
-            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-teal-200/70 bg-teal-50/50 px-4 py-3 sm:px-5">
-              <div className="flex min-w-0 flex-1 items-center gap-2">
-                <span className="shrink-0 flex h-8 w-8 items-center justify-center rounded-lg bg-teal-100 text-teal-600">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </span>
-                <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wide text-teal-600">Institution Compare</p>
-                  <p className="truncate text-sm font-semibold text-slate-800">
-                    Comparing {selectedInstitutions.length} institutions
-                  </p>
-                </div>
-              </div>
-              <span className="shrink-0 inline-flex items-center rounded-full bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-700 ring-1 ring-teal-200">
-                Class 10th only
-              </span>
-            </div>
 
             {compareError ? (
               <div className="rounded-xl border border-rose-200/80 bg-rose-50/80 px-4 py-3 text-sm text-rose-800">
