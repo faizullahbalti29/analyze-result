@@ -25,6 +25,7 @@ export function InstitutionSelect({
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const [portalStyle, setPortalStyle] = useState<React.CSSProperties | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   const selectedLabel =
@@ -50,6 +51,7 @@ export function InstitutionSelect({
 
   const handleClose = () => {
     setOpen(false);
+    setPortalStyle(null);
     if (query) {
       setQuery("");
       onSearch?.("");
@@ -68,11 +70,16 @@ export function InstitutionSelect({
           ref={buttonRef}
           type="button"
           onClick={() => {
-            if (loading) return;
-            const rect = buttonRef.current?.getBoundingClientRect() ?? null;
-            setAnchorRect(rect);
-            setOpen(true);
-          }}
+              if (loading) return;
+              const rect = buttonRef.current?.getBoundingClientRect() ?? null;
+              setAnchorRect(rect);
+              const vw = typeof window !== "undefined" ? window.innerWidth : 1024;
+              const maxWidth = Math.min(vw - 48, 900);
+              const initial = rect ? Math.min(rect.width, maxWidth) : Math.min(640, maxWidth);
+              const width = Math.max(480, initial);
+              setPortalStyle({ position: "fixed", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width, zIndex: 60, maxHeight: "80vh" });
+              setOpen(true);
+            }}
           disabled={loading}
           className={cn(
             "flex w-full items-center justify-between gap-3 rounded-xl border bg-white pl-4 pr-12 py-3.5 text-left shadow-sm transition-all",
@@ -132,7 +139,7 @@ export function InstitutionSelect({
 
           {createPortal(
             <div
-              style={{ left: anchorRect.left, top: anchorRect.bottom + 8, width: anchorRect.width, position: 'fixed', zIndex: 60 }}
+              style={portalStyle ?? { left: anchorRect.left, top: anchorRect.bottom + 8, width: anchorRect.width, position: 'fixed', zIndex: 60 }}
               className="rounded-xl border border-slate-200 bg-white shadow-2xl"
               role="dialog"
             >

@@ -24,6 +24,7 @@ export function MultiInstitutionSelect({
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const [portalStyle, setPortalStyle] = useState<React.CSSProperties | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   const selectedSet = new Set(selected);
@@ -56,6 +57,7 @@ export function MultiInstitutionSelect({
   const handleClose = () => {
     setOpen(false);
     setAnchorRect(null);
+    setPortalStyle(null);
     if (query) {
       setQuery("");
       onSearch?.("");
@@ -86,6 +88,12 @@ export function MultiInstitutionSelect({
           if (loading) return;
           const rect = buttonRef.current?.getBoundingClientRect() ?? null;
           setAnchorRect(rect);
+          // compute centered portal width constrained to viewport
+          const vw = typeof window !== "undefined" ? window.innerWidth : 1024;
+          const maxWidth = Math.min(vw - 48, 900);
+          const initial = rect ? Math.min(rect.width, maxWidth) : Math.min(640, maxWidth);
+          const width = Math.max(480, initial);
+          setPortalStyle({ position: "fixed", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width, zIndex: 60, maxHeight: "80vh" });
           setOpen(true);
         }}
         disabled={loading}
@@ -148,14 +156,16 @@ export function MultiInstitutionSelect({
 
           {createPortal(
             <div
-              style={{
-                position: "fixed",
-                left: anchorRect.left,
-                top: anchorRect.bottom + 8,
-                width: anchorRect.width,
-                zIndex: 60,
-                maxHeight: "60vh",
-              }}
+              style={
+                portalStyle ?? {
+                  position: "fixed",
+                  left: anchorRect.left,
+                  top: anchorRect.bottom + 8,
+                  width: anchorRect.width,
+                  zIndex: 60,
+                  maxHeight: "60vh",
+                }
+              }
               className="rounded-xl border border-slate-200 bg-white shadow-2xl overflow-hidden"
               role="dialog"
             >
