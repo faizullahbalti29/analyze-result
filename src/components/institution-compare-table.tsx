@@ -1,6 +1,8 @@
 "use client";
 
 import type { CompareInstitutionResult } from "@/lib/types";
+import { getFbiseUrl } from "@/lib/utils";
+import { ExternalLink } from "lucide-react";
 
 interface InstitutionCompareTableProps {
   results: CompareInstitutionResult[];
@@ -14,13 +16,14 @@ export function InstitutionCompareTable({ results }: InstitutionCompareTableProp
       name: s.name,
       marks: s.marks,
       percentage: s.percentage,
+      fbiseUrl: getFbiseUrl(s.roll_no, "10th"),
     })),
   );
 
   return (
     <div className="space-y-6">
       {/* Institutions summary table */}
-      <div className="overflow-auto rounded-2xl border border-slate-200 bg-white">
+      <div className="overflow-auto rounded-2xl border border-slate-200 bg-white custom-scrollbar">
         <div className="min-w-[900px]">
           <table className="min-w-full divide-y divide-slate-100">
             <thead className="bg-slate-50">
@@ -72,7 +75,7 @@ export function InstitutionCompareTable({ results }: InstitutionCompareTableProp
       </div>
 
       {/* Top students table */}
-      <div className="overflow-auto rounded-2xl border border-slate-200 bg-white">
+      <div className="overflow-auto rounded-2xl border border-slate-200 bg-white custom-scrollbar">
         <div className="min-w-[640px]">
           <table className="min-w-full divide-y divide-slate-100">
             <thead className="bg-slate-50">
@@ -82,6 +85,7 @@ export function InstitutionCompareTable({ results }: InstitutionCompareTableProp
                 <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold text-slate-500">Name</th>
                 <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">Marks</th>
                 <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">%</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold text-slate-500">Official Sheet</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -91,8 +95,19 @@ export function InstitutionCompareTable({ results }: InstitutionCompareTableProp
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-700">{s.roll_no}</td>
                   <td className="px-4 py-3 text-sm text-slate-900 truncate">{s.name}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{s.marks ?? "—"}</td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{s.percentage != null ? s.percentage.toFixed(2) + "%" : "—"}</td>
-                </tr>
+                <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{s.percentage != null ? s.percentage.toFixed(2) + "%" : "—"}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">
+                  <a
+                    href={s.fbiseUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-lg border border-teal-200 bg-teal-50/60 px-3 py-1.5 text-xs font-semibold text-teal-700 transition-colors hover:bg-teal-100 hover:text-teal-900"
+                  >
+                    View Sheet
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </td>
+              </tr>
               ))}
             </tbody>
           </table>

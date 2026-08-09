@@ -32,3 +32,26 @@ body {
 .animate-fade-in {
   animation: fade-in 0.35s ease-out forwards;
 }
+
+/* Custom slim scrollbar for compare tables and dropdowns */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(15, 23, 42, 0.12); /* slate-900 at 12% */
+  border-radius: 9999px;
+  border: 2px solid rgba(255,255,255,0.6);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(15, 23, 42, 0.2);
+}
+
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15,23,42,0.12) transparent;
+}
