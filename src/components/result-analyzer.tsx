@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AnalysisModeSelect } from "@/components/analysis-mode-select";
 import { ClassTabs } from "@/components/class-tabs";
 import { Header } from "@/components/header";
@@ -24,6 +24,8 @@ export function ResultAnalyzer() {
   const [compareResults, setCompareResults] = useState<CompareInstitutionResult[]>([]);
   const [compareLoading, setCompareLoading] = useState(false);
   const [compareError, setCompareError] = useState<string | null>(null);
+
+  const compareFetchController = useRef<AbortController | null>(null);
 
   const [students, setStudents] = useState<Student[]>([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
@@ -117,11 +119,24 @@ export function ResultAnalyzer() {
   }, [selectedClass, institutionQuery, fetchInstitutions]);
 
   const fetchCompareResults = useCallback(async (selectedInstitutions: string[]) => {
+    // If no institutions selected, clear results and cancel any in-flight request
     if (selectedInstitutions.length === 0) {
+      if (compareFetchController.current) {
+        compareFetchController.current.abort();
+        compareFetchController.current = null;
+      }
       setCompareResults([]);
       setCompareError(null);
+      setCompareLoading(false);
       return;
     }
+
+    // Cancel previous compare request if any
+    if (compareFetchController.current) {
+      compareFetchController.current.abort();
+    }
+    const controller = new AbortController();
+    compareFetchController.current = controller;
 
     setCompareLoading(true);
     setCompareError(null);
@@ -131,16 +146,27 @@ export function ResultAnalyzer() {
       selectedInstitutions.forEach((institution) => {
         url.searchParams.append("institution", institution);
       });
-      const res = await fetch(url.toString());
+      const res = await fetch(url.toString(), { signal: controller.signal });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json() as { results: CompareInstitutionResult[] };
+      const data = (await res.json()) as { results: CompareInstitutionResult[] };
+
+      // If this request was aborted or superseded, ignore the response
+      if (compareFetchController.current !== controller) return;
+
       setCompareResults(data.results);
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.name === "AbortError") {
+        // aborted — ignore
+        return;
+      }
       console.error(err);
       setCompareError("Failed to fetch compare results.");
       setCompareResults([]);
     } finally {
-      setCompareLoading(false);
+      if (compareFetchController.current === controller) {
+        compareFetchController.current = null;
+        setCompareLoading(false);
+      }
     }
   }, []);
 
