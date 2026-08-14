@@ -91,7 +91,7 @@ export function AnalysisModeSelect({
       </div>
 
       {disabled && (
-        <p className="text-xs text-slate-500">Institution compare is only available for Class 10th.</p>
+        <p className="text-xs text-slate-500">Institution compare is only available for Class 10th and 12th.</p>
       )}
     </div>
   );

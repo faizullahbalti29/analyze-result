@@ -17,13 +17,21 @@ const studentSchema = new Schema<StudentDocument>(
 );
 
 /**
- * Returns the Mongoose model bound to the given collection name
- * (either "nineth" or "tenth"). We create a new model each time
- * to avoid the "Cannot overwrite model" error across hot-reloads,
- * while still leveraging the existing model when it already exists.
+ * Returns the Mongoose model bound to the given collection name.
+ * We create a new model each time to avoid the "Cannot overwrite model" error
+ * across hot-reloads while reusing existing ones when available.
  */
-export function getStudentModel(collection: "nineth" | "tenth"): Model<StudentDocument> {
-  const modelName = collection === "nineth" ? "NinethStudent" : "TenthStudent";
+export function getStudentModel(
+  collection: "nineth" | "tenth" | "eleventh" | "twelfth",
+): Model<StudentDocument> {
+  const modelNameMap: Record<typeof collection, string> = {
+    nineth: "NinethStudent",
+    tenth: "TenthStudent",
+    eleventh: "EleventhStudent",
+    twelfth: "TwelfthStudent",
+  };
+
+  const modelName = modelNameMap[collection];
   if (mongoose.models[modelName]) {
     return mongoose.models[modelName] as Model<StudentDocument>;
   }

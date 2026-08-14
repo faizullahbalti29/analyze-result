@@ -6,10 +6,15 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getFbiseUrl(rollNo: string, classLevel: ClassLevel = "9th"): string {
-  const is9th = classLevel === "9th";
-  const endpoint = is9th ? "Result-link-ssc1.php" : "Result-link-ssc2.php";
-  const annual = is9th ? "SSC-I" : "SSC-II";
-  return `https://portal.fbise.edu.pk/fbise-conduct/result/${endpoint}?rollNo=${encodeURIComponent(rollNo)}&annual=${annual}`;
+  const routes: Record<ClassLevel, { endpoint: string; annual: string }> = {
+    "9th": { endpoint: "Result-link-ssc1.php", annual: "SSC-I" },
+    "10th": { endpoint: "Result-link-ssc2.php", annual: "SSC-II" },
+    "11th": { endpoint: "Result-link-hssc1.php", annual: "HSSC-I" },
+    "12th": { endpoint: "Result-link-hssc2.php", annual: "HSSC-II" },
+  };
+
+  const route = routes[classLevel] ?? routes["9th"];
+  return `https://portal.fbise.edu.pk/fbise-conduct/result/${route.endpoint}?rollNo=${encodeURIComponent(rollNo)}&annual=${route.annual}`;
 }
 
 export function normalizeStatus(status: string): string {

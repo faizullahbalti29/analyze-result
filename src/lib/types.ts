@@ -1,4 +1,4 @@
-export type ClassLevel = "9th" | "10th";
+export type ClassLevel = "9th" | "10th" | "11th" | "12th";
 
 export type StudentStatus =
   | "PASS"
@@ -22,7 +22,7 @@ export interface Student {
 export interface Institution {
   /** MongoDB ObjectId as string */
   _id: string;
-  /** Display name — normalised from "institution" (9th) or "name" (10th) field */
+  /** Display name — normalised from the institution field across class levels */
   name: string;
 }
 
@@ -38,7 +38,7 @@ export type TopLimit = 3 | 5 | 10 | 20 | "all";
 
 export type AnalysisMode = "result" | "institution";
 
-export interface TenthSubjectGroup {
+export interface SubjectGroup {
   enrolled: number;
   absent: number;
   appd: number;
@@ -63,16 +63,23 @@ export interface TenthInstitution {
   code: string;
   institution: string;
   groups: {
-    science: TenthSubjectGroup;
-    humanities: TenthSubjectGroup;
-    total: TenthSubjectGroup;
+    science: SubjectGroup;
+    humanities: SubjectGroup;
+    total: SubjectGroup;
   };
+}
+
+export interface TwelfthInstitution {
+  _id: string;
+  code: string;
+  institution: string;
+  groups: Record<string, SubjectGroup>;
 }
 
 export interface CompareInstitutionResult {
   institution: string;
   code: string;
-  groups: TenthInstitution["groups"];
+  groups: Record<string, SubjectGroup>;
   topStudents: {
     _id: string;
     roll_no: string;

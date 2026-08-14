@@ -2,7 +2,7 @@ import Fuse from "fuse.js";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { getStudentModel } from "@/lib/models/Student";
-import { getTenthInstitutionModel } from "@/lib/models/TenthInstitution";
+import { getTwelfthInstitutionModel } from "@/lib/models/TwelfthInstitution";
 
 function escapeRegex(input: string): string {
   return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -42,8 +42,8 @@ export async function GET(request: Request) {
     }
 
     await connectDB();
-    const TenthInstitutionModel = getTenthInstitutionModel();
-    const StudentModel = getStudentModel("tenth");
+    const TwelfthInstitutionModel = getTwelfthInstitutionModel();
+    const StudentModel = getStudentModel("twelfth");
 
     const requestedInstitutions = Array.from(new Set(institutions.map((institution) => normalizeInstitutionName(institution))));
 
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
       return { institution: { $regex: new RegExp(`^${escapeRegex(prefix)}`, "i") } };
     });
 
-    const docs = await TenthInstitutionModel.find(
+    const docs = await TwelfthInstitutionModel.find(
       searchFilters.length > 0 ? { $or: searchFilters } : {},
     ).lean();
 
@@ -139,9 +139,9 @@ export async function GET(request: Request) {
       ),
     });
   } catch (error) {
-    console.error("[GET /api/tenth-institutions/compare]", error);
+    console.error("[GET /api/twelfth-institutions/compare]", error);
     return NextResponse.json(
-      { error: "Failed to fetch institution comparison" },
+      { error: "Failed to fetch twelfth institution comparison" },
       { status: 500 },
     );
   }

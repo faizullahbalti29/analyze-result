@@ -9,17 +9,23 @@ export async function GET(request: Request) {
     const classLevel = searchParams.get("class");
     const query = searchParams.get("q")?.trim();
 
-    if (classLevel !== "9th" && classLevel !== "10th") {
+    if (classLevel !== "9th" && classLevel !== "10th" && classLevel !== "11th" && classLevel !== "12th") {
       return NextResponse.json(
-        { error: 'Query param "class" must be "9th" or "10th"' },
+        { error: 'Query param "class" must be "9th", "10th", "11th", or "12th"' },
         { status: 400 },
       );
     }
 
     await connectDB();
 
-    const collection = classLevel === "9th" ? "nineth" : "tenth";
-    const StudentModel = getStudentModel(collection);
+    const collectionMap = {
+      "9th": "nineth",
+      "10th": "tenth",
+      "11th": "eleventh",
+      "12th": "twelfth",
+    } as const;
+
+    const StudentModel = getStudentModel(collectionMap[classLevel as keyof typeof collectionMap]);
 
     const distinctInstitutions = await StudentModel.distinct<string>("institution", {
       institution: { $exists: true, $ne: "" },

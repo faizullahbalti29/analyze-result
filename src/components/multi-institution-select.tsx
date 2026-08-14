@@ -12,6 +12,7 @@ interface MultiInstitutionSelectProps {
   selected: string[];
   onChange: (selected: string[]) => void;
   onSearch?: (query: string) => void;
+  classLabel?: string;
 }
 
 export function MultiInstitutionSelect({
@@ -20,6 +21,7 @@ export function MultiInstitutionSelect({
   selected,
   onChange,
   onSearch,
+  classLabel = "10th",
 }: MultiInstitutionSelectProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -186,7 +188,7 @@ export function MultiInstitutionSelect({
                   {loading && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-teal-500" />}
                 </div>
                 <p className="mt-2 text-xs text-slate-500">
-                  Select up to 5 class 10th institutions to compare their totals and top students.
+                  Select up to 5 class {classLabel} institutions to compare their totals and top students.
                 </p>
               </div>
 

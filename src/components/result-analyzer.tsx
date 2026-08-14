@@ -118,7 +118,7 @@ export function ResultAnalyzer() {
     return () => clearTimeout(handler);
   }, [selectedClass, institutionQuery, fetchInstitutions]);
 
-  const fetchCompareResults = useCallback(async (selectedInstitutions: string[]) => {
+  const fetchCompareResults = useCallback(async (selectedInstitutions: string[], classLevel: ClassLevel) => {
     // If no institutions selected, clear results and cancel any in-flight request
     if (selectedInstitutions.length === 0) {
       if (compareFetchController.current) {
@@ -142,7 +142,8 @@ export function ResultAnalyzer() {
     setCompareError(null);
 
     try {
-      const url = new URL(`/api/tenth-institutions/compare`, location.origin);
+      const endpoint = classLevel === "12th" ? "/api/twelfth-institutions/compare" : "/api/tenth-institutions/compare";
+      const url = new URL(endpoint, location.origin);
       selectedInstitutions.forEach((institution) => {
         url.searchParams.append("institution", institution);
       });
@@ -230,9 +231,9 @@ export function ResultAnalyzer() {
       setStudentPage(1);
       setStudentTotal(0);
       setStudents([]);
-      void fetchCompareResults(selectedInstitutions);
+      void fetchCompareResults(selectedInstitutions, selectedClass);
     }
-  }, [analysisMode, selectedInstitutions, fetchCompareResults]);
+  }, [analysisMode, selectedInstitutions, selectedClass, fetchCompareResults]);
 
   const handleClassChange = (value: ClassLevel) => {
     setSelectedClass(value);
@@ -242,8 +243,9 @@ export function ResultAnalyzer() {
     setStudentPage(1);
     setStudentTotal(0);
     setStudents([]);
-    // If switching to 9th class, force result analysis and clear any institution-compare selections
-    if (value === "9th") {
+
+    // Result-only classes: 9th and 11th
+    if (value === "9th" || value === "11th") {
       setAnalysisMode("result");
       setSelectedInstitutions([]);
     }
@@ -264,21 +266,28 @@ export function ResultAnalyzer() {
             </div>
           )}
         </div>
-
+{selectedClass==="11th" || selectedClass==="12th" ?
+<>
+  <div className="rounded-xl border border-rose-200/80 bg-rose-50/80 px-3 py-2.5 text-xs text-rose-800 sm:px-4 sm:py-3 sm:text-sm">
+             
+              Results Not Available for Class 11th and 12th. Please check back after the official results are announced.
+            </div>
+</>:
+<>
         <section
           className={
-            selectedClass === "9th"
+            selectedClass === "9th" || selectedClass === "11th"
               ? "mb-6 sm:mb-8 grid gap-4 grid-cols-1"
               : "mb-6 sm:mb-8 grid gap-4 xl:grid-cols-[280px_1fr]"
           }
         >
-          {selectedClass !== "9th" ? (
+          {selectedClass !== "9th" && selectedClass !== "11th" ? (
             <>
               <div>
                 <AnalysisModeSelect
                   value={analysisMode}
                   onChange={setAnalysisMode}
-                  disabled={selectedClass !== "10th"}
+                  disabled={selectedClass !== "10th" && selectedClass !== "12th"}
                 />
               </div>
 
@@ -297,11 +306,11 @@ export function ResultAnalyzer() {
                   selected={selectedInstitutions}
                   onChange={setSelectedInstitutions}
                   onSearch={setInstitutionQuery}
+                  classLabel={selectedClass === "12th" ? "12th" : "10th"}
                 />
               )}
             </>
           ) : (
-            // 9th class: show only the institution select full width
             <InstitutionSelect
               institutions={institutions}
               loading={institutionsLoading}
@@ -326,7 +335,7 @@ export function ResultAnalyzer() {
               </div>
             ) : compareResults.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 px-6 py-10 text-center text-slate-500">
-                Select up to 5 institutions to compare their 10th class summaries and top students.
+                Select up to 5 institutions to compare their {selectedClass} class summaries and top students.
               </div>
             ) : (
               <InstitutionCompareTable results={compareResults} />
@@ -403,6 +412,7 @@ export function ResultAnalyzer() {
             />
           </div>
         )}
+</>}
       </main>
 
       <footer className="mt-8 border-t border-slate-200/80 bg-white/50">
