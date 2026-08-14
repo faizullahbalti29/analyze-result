@@ -20,6 +20,7 @@ export function ResultAnalyzer() {
 
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [institutionsLoading, setInstitutionsLoading] = useState(false);
+  const [hasFetchedInstitutions, setHasFetchedInstitutions] = useState(false);
   const [institutionsError, setInstitutionsError] = useState<string | null>(null);
   const [compareResults, setCompareResults] = useState<CompareInstitutionResult[]>([]);
   const [compareLoading, setCompareLoading] = useState(false);
@@ -58,6 +59,7 @@ export function ResultAnalyzer() {
       setInstitutionsError("Failed to load institutions. Is MongoDB running?");
       setInstitutions([]);
     } finally {
+      setHasFetchedInstitutions(true);
       setInstitutionsLoading(false);
     }
   }, []);
@@ -251,7 +253,7 @@ export function ResultAnalyzer() {
     }
   };
 
-  const resultsNotAnnounced = !institutionsLoading && !institutionsError && institutions.length === 0;
+  const resultsNotAnnounced = hasFetchedInstitutions && !institutionsLoading && !institutionsError && institutions.length === 0;
 
   return (
     <div className="min-h-full bg-gradient-to-b from-slate-50 via-white to-teal-50/30">
