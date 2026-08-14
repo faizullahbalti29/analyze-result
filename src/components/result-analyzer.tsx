@@ -266,14 +266,7 @@ export function ResultAnalyzer() {
             </div>
           )}
         </div>
-{selectedClass==="11th" || selectedClass==="12th" ?
-<>
-  <div className="rounded-xl border border-rose-200/80 bg-rose-50/80 px-3 py-2.5 text-xs text-rose-800 sm:px-4 sm:py-3 sm:text-sm">
-             
-              Results Not Available for Class 11th and 12th. Please check back after the official results are announced.
-            </div>
-</>:
-<>
+
         <section
           className={
             selectedClass === "9th" || selectedClass === "11th"
@@ -412,7 +405,7 @@ export function ResultAnalyzer() {
             />
           </div>
         )}
-</>}
+
       </main>
 
       <footer className="mt-8 border-t border-slate-200/80 bg-white/50">
