@@ -251,6 +251,8 @@ export function ResultAnalyzer() {
     }
   };
 
+  const resultsNotAnnounced = !institutionsLoading && !institutionsError && institutions.length === 0;
+
   return (
     <div className="min-h-full bg-gradient-to-b from-slate-50 via-white to-teal-50/30">
       <Header />
@@ -267,54 +269,68 @@ export function ResultAnalyzer() {
           )}
         </div>
 
-        <section
-          className={
-            selectedClass === "9th" || selectedClass === "11th"
-              ? "mb-6 sm:mb-8 grid gap-4 grid-cols-1"
-              : "mb-6 sm:mb-8 grid gap-4 xl:grid-cols-[280px_1fr]"
-          }
-        >
-          {selectedClass !== "9th" && selectedClass !== "11th" ? (
-            <>
-              <div>
-                <AnalysisModeSelect
-                  value={analysisMode}
-                  onChange={setAnalysisMode}
-                  disabled={selectedClass !== "10th" && selectedClass !== "12th"}
-                />
-              </div>
+        {!resultsNotAnnounced && (
+          <section
+            className={
+              selectedClass === "9th" || selectedClass === "11th"
+                ? "mb-6 sm:mb-8 grid gap-4 grid-cols-1"
+                : "mb-6 sm:mb-8 grid gap-4 xl:grid-cols-[280px_1fr]"
+            }
+          >
+            {selectedClass !== "9th" && selectedClass !== "11th" ? (
+              <>
+                <div>
+                  <AnalysisModeSelect
+                    value={analysisMode}
+                    onChange={setAnalysisMode}
+                    disabled={selectedClass !== "10th" && selectedClass !== "12th"}
+                  />
+                </div>
 
-              {analysisMode === "result" ? (
-                <InstitutionSelect
-                  institutions={institutions}
-                  loading={institutionsLoading}
-                  value={selectedInstitution}
-                  onChange={setSelectedInstitution}
-                  onSearch={setInstitutionQuery}
-                />
-              ) : (
-                <MultiInstitutionSelect
-                  institutions={institutions}
-                  loading={institutionsLoading}
-                  selected={selectedInstitutions}
-                  onChange={setSelectedInstitutions}
-                  onSearch={setInstitutionQuery}
-                  classLabel={selectedClass === "12th" ? "12th" : "10th"}
-                />
-              )}
-            </>
-          ) : (
-            <InstitutionSelect
-              institutions={institutions}
-              loading={institutionsLoading}
-              value={selectedInstitution}
-              onChange={setSelectedInstitution}
-              onSearch={setInstitutionQuery}
-            />
-          )}
-        </section>
+                {analysisMode === "result" ? (
+                  <InstitutionSelect
+                    institutions={institutions}
+                    loading={institutionsLoading}
+                    value={selectedInstitution}
+                    onChange={setSelectedInstitution}
+                    onSearch={setInstitutionQuery}
+                  />
+                ) : (
+                  <MultiInstitutionSelect
+                    institutions={institutions}
+                    loading={institutionsLoading}
+                    selected={selectedInstitutions}
+                    onChange={setSelectedInstitutions}
+                    onSearch={setInstitutionQuery}
+                    classLabel={selectedClass === "12th" ? "12th" : "10th"}
+                  />
+                )}
+              </>
+            ) : (
+              <InstitutionSelect
+                institutions={institutions}
+                loading={institutionsLoading}
+                value={selectedInstitution}
+                onChange={setSelectedInstitution}
+                onSearch={setInstitutionQuery}
+              />
+            )}
+          </section>
+        )}
 
-        {analysisMode === "institution" ? (
+        {resultsNotAnnounced ? (
+          <div className="flex min-h-[320px] flex-col items-center justify-center rounded-2xl border border-dashed border-amber-300 bg-amber-50/60 px-6 text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
+              <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-slate-800">Results not yet announced</h3>
+            <p className="mt-2 max-w-md text-sm text-slate-600">
+              No institution data has been added for Class {selectedClass} yet. The results will appear here once they are published.
+            </p>
+          </div>
+        ) : analysisMode === "institution" ? (
           <div className="animate-fade-in space-y-6 sm:space-y-8">
 
             {compareError ? (
