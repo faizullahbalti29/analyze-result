@@ -1,14 +1,16 @@
 "use client";
 
-import type { CompareInstitutionResult } from "@/lib/types";
+import Link from "next/link";
+import type { ClassLevel, CompareInstitutionResult } from "@/lib/types";
 import { getFbiseUrl } from "@/lib/utils";
 import { ExternalLink } from "lucide-react";
 
 interface InstitutionCompareTableProps {
   results: CompareInstitutionResult[];
+  classLevel?: ClassLevel;
 }
 
-export function InstitutionCompareTable({ results }: InstitutionCompareTableProps) {
+export function InstitutionCompareTable({ results, classLevel = "10th" }: InstitutionCompareTableProps) {
   const topStudentRows = results.flatMap((res) =>
     res.topStudents.map((s) => ({
       institution: res.institution,
@@ -16,7 +18,7 @@ export function InstitutionCompareTable({ results }: InstitutionCompareTableProp
       name: s.name,
       marks: s.marks,
       percentage: s.percentage,
-      fbiseUrl: getFbiseUrl(s.roll_no, "10th"),
+      fbiseUrl: getFbiseUrl(s.roll_no, classLevel),
     })),
   );
 
@@ -51,7 +53,14 @@ export function InstitutionCompareTable({ results }: InstitutionCompareTableProp
               {results.map((r) => (
                 <tr key={r.code} className="group hover:bg-slate-50">
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-700">{r.code}</td>
-                  <td className="whitespace-nowrap px-4 py-3 max-w-xl truncate text-sm font-semibold text-slate-900">{r.institution}</td>
+                  <td className="whitespace-nowrap px-4 py-3 max-w-xl truncate text-sm font-semibold text-slate-900">
+                    <Link
+                      href={`/institutions/${classLevel}/${encodeURIComponent(r.institution)}`}
+                      className="text-teal-700 transition-colors hover:text-teal-900 hover:underline"
+                    >
+                      {r.institution}
+                    </Link>
+                  </td>
                   <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.enrolled}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.pass}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{r.groups.total.fail ?? 0}</td>

@@ -347,7 +347,7 @@ export function ResultAnalyzer() {
                 Select up to 5 institutions to compare their {selectedClass} class summaries and top students.
               </div>
             ) : (
-              <InstitutionCompareTable results={compareResults} />
+              <InstitutionCompareTable results={compareResults} classLevel={selectedClass} />
             )}
           </div>
         ) : !selectedInstitution ? (
