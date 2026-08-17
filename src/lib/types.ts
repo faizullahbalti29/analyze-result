@@ -36,7 +36,35 @@ export interface ResultStats {
 
 export type TopLimit = 3 | 5 | 10 | 20 | "all";
 
-export type AnalysisMode = "result" | "institution";
+export type AnalysisMode = "result" | "institution" | "position";
+
+export interface PositionStudent {
+  _id: string;
+  roll_no: string;
+  name: string;
+  marks: number;
+  grade?: string | null;
+  institution: string;
+}
+
+export interface PositionResult {
+  position: number;
+  higherCount: number;
+  equalCount: number;
+  lowerCount: number;
+  totalWithMarks: number;
+  marks: number;
+  percentile: number;
+  topPercentage: number;
+  topScore: number | null;
+  topStudent?: {
+    roll_no: string;
+    name: string;
+    marks: number;
+    institution: string;
+  } | null;
+  higherStudents: PositionStudent[];
+}
 
 export interface SubjectGroup {
   enrolled: number;

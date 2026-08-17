@@ -7,6 +7,7 @@ import { Header } from "@/components/header";
 import { InstitutionSelect } from "@/components/institution-select";
 import { InstitutionCompareTable } from "@/components/institution-compare-table";
 import { MultiInstitutionSelect } from "@/components/multi-institution-select";
+import { PositionFinder } from "@/components/position-finder";
 import { StatsCards } from "@/components/stats-cards";
 import { StudentTable } from "@/components/student-table";
 import type { AnalysisMode, ClassLevel, CompareInstitutionResult, Institution, ResultStats, Student, TopLimit } from "@/lib/types";
@@ -246,8 +247,8 @@ export function ResultAnalyzer() {
     setStudentTotal(0);
     setStudents([]);
 
-    // Result-only classes: 9th and 11th
-    if (value === "9th" || value === "11th") {
+    // Compare is only for 10th and 12th
+    if ((value === "9th" || value === "11th") && analysisMode === "institution") {
       setAnalysisMode("result");
       setSelectedInstitutions([]);
     }
@@ -274,47 +275,37 @@ export function ResultAnalyzer() {
         {!resultsNotAnnounced && (
           <section
             className={
-              selectedClass === "9th" || selectedClass === "11th"
-                ? "mb-6 sm:mb-8 grid gap-4 grid-cols-1"
+              analysisMode === "position"
+                ? "mb-6 sm:mb-8 grid gap-4 grid-cols-1 sm:max-w-xs"
                 : "mb-6 sm:mb-8 grid gap-4 xl:grid-cols-[280px_1fr]"
             }
           >
-            {selectedClass !== "9th" && selectedClass !== "11th" ? (
-              <>
-                <div>
-                  <AnalysisModeSelect
-                    value={analysisMode}
-                    onChange={setAnalysisMode}
-                    disabled={selectedClass !== "10th" && selectedClass !== "12th"}
-                  />
-                </div>
+            <div>
+              <AnalysisModeSelect
+                value={analysisMode}
+                onChange={setAnalysisMode}
+                isCompareAvailable={selectedClass === "10th" || selectedClass === "12th"}
+              />
+            </div>
 
-                {analysisMode === "result" ? (
-                  <InstitutionSelect
-                    institutions={institutions}
-                    loading={institutionsLoading}
-                    value={selectedInstitution}
-                    onChange={setSelectedInstitution}
-                    onSearch={setInstitutionQuery}
-                  />
-                ) : (
-                  <MultiInstitutionSelect
-                    institutions={institutions}
-                    loading={institutionsLoading}
-                    selected={selectedInstitutions}
-                    onChange={setSelectedInstitutions}
-                    onSearch={setInstitutionQuery}
-                    classLabel={selectedClass === "12th" ? "12th" : "10th"}
-                  />
-                )}
-              </>
-            ) : (
+            {analysisMode === "result" && (
               <InstitutionSelect
                 institutions={institutions}
                 loading={institutionsLoading}
                 value={selectedInstitution}
                 onChange={setSelectedInstitution}
                 onSearch={setInstitutionQuery}
+              />
+            )}
+
+            {analysisMode === "institution" && (
+              <MultiInstitutionSelect
+                institutions={institutions}
+                loading={institutionsLoading}
+                selected={selectedInstitutions}
+                onChange={setSelectedInstitutions}
+                onSearch={setInstitutionQuery}
+                classLabel={selectedClass === "12th" ? "12th" : "10th"}
               />
             )}
           </section>
@@ -332,6 +323,13 @@ export function ResultAnalyzer() {
               No institution data has been added for Class {selectedClass} yet. The results will appear here once they are published.
             </p>
           </div>
+        ) : analysisMode === "position" ? (
+          <PositionFinder
+            selectedClass={selectedClass}
+            onClassChange={handleClassChange}
+            institutions={institutions}
+            institutionsLoading={institutionsLoading}
+          />
         ) : analysisMode === "institution" ? (
           <div className="animate-fade-in space-y-6 sm:space-y-8">
 

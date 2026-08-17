@@ -16,6 +16,10 @@ const studentSchema = new Schema<StudentDocument>(
   { timestamps: false },
 );
 
+studentSchema.index({ marks: -1 });
+studentSchema.index({ institution: 1, marks: -1 });
+studentSchema.index({ status: 1 });
+
 /**
  * Returns the Mongoose model bound to the given collection name.
  * We create a new model each time to avoid the "Cannot overwrite model" error
