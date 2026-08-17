@@ -232,7 +232,7 @@ export function PositionFinder({
               </button>
 
               {/* Option 3: Specific School */}
-              <button
+              {/* <button
                 type="button"
                 onClick={() => setScope("institution")}
                 className={cn(
@@ -258,13 +258,18 @@ export function PositionFinder({
                     Rank in selected institution
                   </div>
                 </div>
-              </button>
+              </button> */}
             </div>
           </div>
 
           {/* Optional Institution Search (when scope === institution) */}
           {scope === "institution" && (
-            <div className="relative animate-fade-in space-y-2 rounded-xl border border-teal-100 bg-teal-50/40 p-3.5 sm:p-4">
+            <div
+              className={cn(
+                "relative animate-fade-in space-y-2 rounded-xl border border-teal-100 bg-teal-50/40 p-3.5 sm:p-4 transition-all",
+                isInstDropdownOpen ? "z-30" : "z-0",
+              )}
+            >
               <label className="block text-xs font-semibold uppercase tracking-wider text-teal-900">
                 Select Institution
               </label>
@@ -290,10 +295,10 @@ export function PositionFinder({
                 {isInstDropdownOpen && (
                   <>
                     <div
-                      className="fixed inset-0 z-30"
+                      className="fixed inset-0 z-40"
                       onClick={() => setIsInstDropdownOpen(false)}
                     />
-                    <div className="absolute left-0 right-0 top-full z-40 mt-1 max-h-64 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+                    <div className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-64 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-2xl ring-1 ring-black/5">
                       <div className="sticky top-0 z-10 mb-2 bg-white px-1">
                         <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
                           <Search className="h-3.5 w-3.5 text-slate-400" />
