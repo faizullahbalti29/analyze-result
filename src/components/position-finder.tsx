@@ -62,6 +62,9 @@ export function PositionFinder({
     )
     .slice(0, 40);
 
+  const maxMarks =
+    selectedClass === "9th" || selectedClass === "11th" ? 550 : 1100;
+
   const handleCalculate = useCallback(
     async (e?: React.FormEvent) => {
       if (e) e.preventDefault();
@@ -69,6 +72,11 @@ export function PositionFinder({
       const numMarks = Number(marksInput.trim());
       if (marksInput.trim() === "" || isNaN(numMarks) || numMarks < 0) {
         setError("Please enter a valid positive number for marks.");
+        return;
+      }
+
+      if (numMarks > maxMarks) {
+        setError(`Marks cannot exceed ${maxMarks} for Class ${selectedClass}.`);
         return;
       }
 
@@ -114,12 +122,12 @@ export function PositionFinder({
         setLoading(false);
       }
     },
-    [marksInput, selectedClass, scope, selectedInstitution],
+    [marksInput, selectedClass, maxMarks, scope, selectedInstitution],
   );
 
   const quickPresets =
     selectedClass === "9th" || selectedClass === "11th"
-      ? [450, 480, 500, 515, 530, 540]
+      ? [400, 450, 480, 500, 520, 540]
       : [850, 950, 1000, 1030, 1060, 1080];
 
   return (
@@ -339,28 +347,55 @@ export function PositionFinder({
 
           {/* Marks Input */}
           <div>
-            <label
-              htmlFor="marks-input-field"
-              className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500 sm:text-sm"
-            >
-              2. Enter Obtained Marks
-            </label>
+            <div className="mb-2 flex items-center justify-between">
+              <label
+                htmlFor="marks-input-field"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-500 sm:text-sm"
+              >
+                2. Enter Obtained Marks
+              </label>
+              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                Max Limit:{" "}
+                <strong className="font-bold text-teal-800">
+                  {maxMarks}
+                </strong>
+              </span>
+            </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="relative flex-1">
                 <input
                   id="marks-input-field"
                   type="number"
                   min={0}
+                  max={maxMarks}
                   step={1}
-                  placeholder="e.g. 800"
+                  placeholder={`e.g. ${selectedClass === "9th" || selectedClass === "11th" ? "480" : "950"} (Max: ${maxMarks})`}
                   value={marksInput}
-                  onChange={(e) => setMarksInput(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-base font-semibold text-slate-900 placeholder-slate-400 shadow-sm transition-all focus:border-teal-500 focus:outline-none focus:ring-4 focus:ring-teal-100 sm:text-lg"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setMarksInput(val);
+                    if (Number(val) > maxMarks) {
+                      setError(
+                        `Marks cannot exceed ${maxMarks} for Class ${selectedClass}.`,
+                      );
+                    } else {
+                      setError(null);
+                    }
+                  }}
+                  className={cn(
+                    "w-full rounded-xl border bg-white px-4 py-3.5 text-base font-semibold text-slate-900 placeholder-slate-400 shadow-sm transition-all focus:outline-none focus:ring-4 sm:text-lg",
+                    Number(marksInput) > maxMarks
+                      ? "border-rose-300 focus:border-rose-500 focus:ring-rose-100"
+                      : "border-slate-200 focus:border-teal-500 focus:ring-teal-100",
+                  )}
                 />
                 {marksInput && (
                   <button
                     type="button"
-                    onClick={() => setMarksInput("")}
+                    onClick={() => {
+                      setMarksInput("");
+                      setError(null);
+                    }}
                     className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
                   >
                     <X className="h-4 w-4" />

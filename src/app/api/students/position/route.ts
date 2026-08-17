@@ -31,7 +31,17 @@ export async function GET(request: Request) {
       );
     }
 
-    const marks = Math.max(0, Math.round(Number(marksParam)));
+    const maxMarks = classLevel === "9th" || classLevel === "11th" ? 550 : 1100;
+    const marks = Math.round(Number(marksParam));
+
+    if (marks < 0 || marks > maxMarks) {
+      return NextResponse.json(
+        {
+          error: `Marks must be between 0 and ${maxMarks} for Class ${classLevel}`,
+        },
+        { status: 400 },
+      );
+    }
 
     await connectDB();
 
