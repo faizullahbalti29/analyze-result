@@ -51,7 +51,7 @@ export function InstitutionCompareTable({ results, classLevel = "10th" }: Instit
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
               {results.map((r) => (
-                <tr key={r.code} className="group hover:bg-slate-50">
+                <tr key={`${r.code}_${r.institution}`} className="group hover:bg-slate-50">
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-700">{r.code}</td>
                   <td className="whitespace-nowrap px-4 py-3 max-w-xl truncate text-sm font-semibold text-slate-900">
                     <Link
@@ -104,19 +104,19 @@ export function InstitutionCompareTable({ results, classLevel = "10th" }: Instit
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-700">{s.roll_no}</td>
                   <td className="px-4 py-3 text-sm text-slate-900 truncate">{s.name}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{s.marks ?? "—"}</td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{s.percentage != null ? s.percentage.toFixed(2) + "%" : "—"}</td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">
-                  <a
-                    href={s.fbiseUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-lg border border-teal-200 bg-teal-50/60 px-3 py-1.5 text-xs font-semibold text-teal-700 transition-colors hover:bg-teal-100 hover:text-teal-900"
-                  >
-                    View Sheet
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                </td>
-              </tr>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">{s.percentage != null ? s.percentage.toFixed(2) + "%" : "—"}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-slate-700">
+                    <a
+                      href={s.fbiseUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-teal-200 bg-teal-50/60 px-3 py-1.5 text-xs font-semibold text-teal-700 transition-colors hover:bg-teal-100 hover:text-teal-900"
+                    >
+                      View Sheet
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>

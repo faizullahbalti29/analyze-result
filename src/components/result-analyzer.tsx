@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { AnalysisModeSelect } from "@/components/analysis-mode-select";
 import { ClassTabs } from "@/components/class-tabs";
 import { Header } from "@/components/header";
@@ -12,10 +13,29 @@ import { StatsCards } from "@/components/stats-cards";
 import { StudentTable } from "@/components/student-table";
 import type { AnalysisMode, ClassLevel, CompareInstitutionResult, Institution, ResultStats, Student, TopLimit } from "@/lib/types";
 
+const VALID_CLASSES: ClassLevel[] = ["9th", "10th", "11th", "12th"];
+const VALID_MODES: AnalysisMode[] = ["result", "institution", "position"];
+
 export function ResultAnalyzer() {
-  const [selectedClass, setSelectedClass] = useState<ClassLevel>("9th");
-  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>("result");
-  const [selectedInstitution, setSelectedInstitution] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Initialise from URL so the browser back button restores selections
+  const initClass = (): ClassLevel => {
+    const v = searchParams.get("class") as ClassLevel;
+    return VALID_CLASSES.includes(v) ? v : "9th";
+  };
+  const initMode = (): AnalysisMode => {
+    const v = searchParams.get("mode") as AnalysisMode;
+    return VALID_MODES.includes(v) ? v : "result";
+  };
+
+  const [selectedClass, setSelectedClass] = useState<ClassLevel>(initClass);
+  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>(initMode);
+  const [selectedInstitution, setSelectedInstitution] = useState(
+    searchParams.get("institution") ?? "",
+  );
   const [selectedInstitutions, setSelectedInstitutions] = useState<string[]>([]);
   const [topLimit, setTopLimit] = useState<string>("all");
 
@@ -43,7 +63,19 @@ export function ResultAnalyzer() {
   });
   const [statsLoading, setStatsLoading] = useState(false);
 
+  // Keep URL in sync so browser back/forward restores the selection
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set("class", selectedClass);
+    if (analysisMode !== "result") params.set("mode", analysisMode);
+    if (selectedInstitution) params.set("institution", selectedInstitution);
+    const newUrl = `${pathname}?${params.toString()}`;
+    // Use replace so we don't create extra history entries for every keystroke
+    router.replace(newUrl, { scroll: false });
+  }, [selectedClass, analysisMode, selectedInstitution, pathname, router]);
+
   // Fetch institutions whenever class tab changes or search query updates
+
   const fetchInstitutions = useCallback(async (classLevel: ClassLevel, query: string = "") => {
     setInstitutionsLoading(true);
     setInstitutionsError(null);
