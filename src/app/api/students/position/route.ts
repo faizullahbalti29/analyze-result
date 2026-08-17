@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const maxMarks = classLevel === "9th" || classLevel === "11th" ? 550 : 1100;
+    const maxMarks = classLevel === "9th" || classLevel === "11th" ? 560 : 1100;
     const marks = Math.round(Number(marksParam));
 
     if (marks < 0 || marks > maxMarks) {
@@ -158,11 +158,11 @@ export async function GET(request: Request) {
       topScore: topDoc?.marks ?? null,
       topStudent: topDoc
         ? {
-            roll_no: topDoc.roll_no,
-            name: topDoc.name,
-            marks: topDoc.marks as number,
-            institution: topDoc.institution,
-          }
+          roll_no: topDoc.roll_no,
+          name: topDoc.name,
+          marks: topDoc.marks as number,
+          institution: topDoc.institution,
+        }
         : null,
       higherStudents,
       scope: isGB ? "gb" : institution ? "institution" : "board",

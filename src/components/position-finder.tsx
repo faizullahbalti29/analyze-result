@@ -63,7 +63,7 @@ export function PositionFinder({
     .slice(0, 40);
 
   const maxMarks =
-    selectedClass === "9th" || selectedClass === "11th" ? 550 : 1100;
+    selectedClass === "9th" || selectedClass === "11th" ? 560 : 1100;
 
   const handleCalculate = useCallback(
     async (e?: React.FormEvent) => {
@@ -87,7 +87,7 @@ export function PositionFinder({
         const url = new URL("/api/students/position", window.location.origin);
         url.searchParams.append("class", selectedClass);
         url.searchParams.append("marks", numMarks.toString());
-        
+
         if (scope === "gb") {
           url.searchParams.append("region", "gb");
         } else if (scope === "institution" && selectedInstitution) {
@@ -461,8 +461,8 @@ export function PositionFinder({
                 {searchedParams.scope === "gb"
                   ? "Gilgit-Baltistan Region (GB)"
                   : searchedParams.institution
-                  ? `Institution: ${searchedParams.institution}`
-                  : "All FBISE Board"}
+                    ? `Institution: ${searchedParams.institution}`
+                    : "All FBISE Board"}
               </div>
 
               {/* Main Rank Display */}
