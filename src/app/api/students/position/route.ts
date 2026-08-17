@@ -9,6 +9,8 @@ export async function GET(request: Request) {
     const classLevel = searchParams.get("class");
     const marksParam = searchParams.get("marks");
     const institution = searchParams.get("institution")?.trim();
+    const region = searchParams.get("region")?.trim().toLowerCase();
+    const scope = searchParams.get("scope")?.trim().toLowerCase();
 
     if (
       classLevel !== "9th" &&
@@ -44,9 +46,34 @@ export async function GET(request: Request) {
       collectionMap[classLevel as keyof typeof collectionMap],
     );
 
+    const GB_REGEX_INCLUSION =
+      "\\b(gilgit|baltistan|skardu|chilas|khaplu|shigar|kharmang|ghanche|astore|ghizer|hunza|nagar|gupis|yasin|phander|ishkoman|danyor|jaglot|aliabad|karimabad|gojal|shinaki|chalt|darel|tangir|babusar|goharabad|punial|gulabpur|gultari|roundu|gamba|daghoni|mashabrum|chorbat|keris|haldi|shounter|jutial|gilg|danyore|office sharote|post office rahimabad|village choungrah|begum viqar-un-nisa noon)\\b";
+
+    const GB_REGEX_EXCLUSION =
+      "\\b(irshad nagar|st\\.5 block-3, aliabad|village raazi dero taluka, gamba)\\b";
+
     const baseFilter: Record<string, unknown> = {};
+    const isGB = region === "gb" || scope === "gb";
+
     if (institution) {
       baseFilter.institution = institution;
+    } else if (isGB) {
+      baseFilter.$and = [
+        {
+          institution: {
+            $regex: GB_REGEX_INCLUSION,
+            $options: "i",
+          },
+        },
+        {
+          institution: {
+            $not: {
+              $regex: GB_REGEX_EXCLUSION,
+              $options: "i",
+            },
+          },
+        },
+      ];
     }
 
     const [
@@ -128,6 +155,8 @@ export async function GET(request: Request) {
           }
         : null,
       higherStudents,
+      scope: isGB ? "gb" : institution ? "institution" : "board",
+      region: isGB ? "Gilgit-Baltistan" : null,
     };
 
     return NextResponse.json(result);

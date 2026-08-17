@@ -64,6 +64,8 @@ export interface PositionResult {
     institution: string;
   } | null;
   higherStudents: PositionStudent[];
+  scope?: "board" | "gb" | "institution";
+  region?: string | null;
 }
 
 export interface SubjectGroup {

@@ -4,8 +4,6 @@ import { useState, useCallback, useId } from "react";
 import {
   Award,
   Trophy,
-  Users,
-  TrendingUp,
   Equal,
   ArrowDown,
   ArrowUp,
@@ -13,6 +11,7 @@ import {
   Sparkles,
   School,
   Globe,
+  Mountain,
   CheckCircle2,
   ChevronDown,
   X,
@@ -27,6 +26,8 @@ interface PositionFinderProps {
   institutionsLoading?: boolean;
 }
 
+type ScopeType = "board" | "gb" | "institution";
+
 function getOrdinal(n: number): string {
   const s = ["th", "st", "nd", "rd"];
   const v = n % 100;
@@ -38,7 +39,7 @@ export function PositionFinder({
   institutions,
 }: PositionFinderProps) {
   const [marksInput, setMarksInput] = useState<string>("");
-  const [scope, setScope] = useState<"board" | "institution">("board");
+  const [scope, setScope] = useState<ScopeType>("board");
   const [selectedInstitution, setSelectedInstitution] = useState<string>("");
   const [instSearchQuery, setInstSearchQuery] = useState<string>("");
   const [isInstDropdownOpen, setIsInstDropdownOpen] = useState(false);
@@ -49,6 +50,7 @@ export function PositionFinder({
   const [searchedParams, setSearchedParams] = useState<{
     marks: number;
     classLevel: ClassLevel;
+    scope: ScopeType;
     institution?: string;
   } | null>(null);
 
@@ -77,7 +79,10 @@ export function PositionFinder({
         const url = new URL("/api/students/position", window.location.origin);
         url.searchParams.append("class", selectedClass);
         url.searchParams.append("marks", numMarks.toString());
-        if (scope === "institution" && selectedInstitution) {
+        
+        if (scope === "gb") {
+          url.searchParams.append("region", "gb");
+        } else if (scope === "institution" && selectedInstitution) {
           url.searchParams.append("institution", selectedInstitution);
         }
 
@@ -94,6 +99,7 @@ export function PositionFinder({
         setSearchedParams({
           marks: numMarks,
           classLevel: selectedClass,
+          scope,
           institution:
             scope === "institution" && selectedInstitution
               ? selectedInstitution
@@ -133,8 +139,8 @@ export function PositionFinder({
           </h2>
           <p className="mt-2 text-xs leading-relaxed text-teal-100/80 sm:text-sm">
             Enter any score to discover exact merit ranking, number of students
-            with higher or equal marks, percentile, and compare against the entire
-            board or your school.
+            with higher or equal marks, percentile, and compare across the entire
+            board, Gilgit-Baltistan region, or your specific school.
           </p>
         </div>
       </div>
@@ -147,7 +153,8 @@ export function PositionFinder({
             <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500 sm:text-sm">
               1. Calculation Scope
             </label>
-            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+              {/* Option 1: Entire Board */}
               <button
                 type="button"
                 onClick={() => {
@@ -172,13 +179,51 @@ export function PositionFinder({
                   <Globe className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold">Entire Board (FBISE)</div>
+                  <div className="text-sm font-semibold">Entire Board</div>
                   <div className="text-xs text-slate-500">
-                    Find position across all institutions
+                    All FBISE institutions
                   </div>
                 </div>
               </button>
 
+              {/* Option 2: Gilgit-Baltistan */}
+              <button
+                type="button"
+                onClick={() => {
+                  setScope("gb");
+                  setSelectedInstitution("");
+                }}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all",
+                  scope === "gb"
+                    ? "border-emerald-600 bg-emerald-50/80 ring-2 ring-emerald-200 text-emerald-950 font-medium"
+                    : "border-slate-200 hover:border-slate-300 text-slate-700 bg-white",
+                )}
+              >
+                <div
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                    scope === "gb"
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "bg-emerald-50 text-emerald-700",
+                  )}
+                >
+                  <Mountain className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-semibold">Gilgit-Baltistan</span>
+                    <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 ring-1 ring-emerald-300/60">
+                      GB
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-500 truncate">
+                    All GB schools &amp; districts
+                  </div>
+                </div>
+              </button>
+
+              {/* Option 3: Specific School */}
               <button
                 type="button"
                 onClick={() => setScope("institution")}
@@ -200,9 +245,9 @@ export function PositionFinder({
                   <School className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold">Specific School / College</div>
+                  <div className="text-sm font-semibold">Specific School</div>
                   <div className="text-xs text-slate-500">
-                    Calculate rank within a selected institution
+                    Rank in selected institution
                   </div>
                 </div>
               </button>
@@ -378,7 +423,9 @@ export function PositionFinder({
               <div className="inline-flex items-center gap-2 rounded-full bg-teal-100 px-4 py-1.5 text-xs font-bold text-teal-800 ring-1 ring-teal-300/60">
                 <Award className="h-4 w-4 text-teal-600" />
                 Class {searchedParams.classLevel} ·{" "}
-                {searchedParams.institution
+                {searchedParams.scope === "gb"
+                  ? "Gilgit-Baltistan Region (GB)"
+                  : searchedParams.institution
                   ? `Institution: ${searchedParams.institution}`
                   : "All FBISE Board"}
               </div>
@@ -387,6 +434,7 @@ export function PositionFinder({
               <div className="mt-5 flex flex-col items-center">
                 <div className="text-xs font-semibold uppercase tracking-widest text-slate-500 sm:text-sm">
                   Calculated Merit Ranking for {result.marks} Marks
+                  {searchedParams.scope === "gb" && " in Gilgit-Baltistan"}
                 </div>
                 <div className="mt-2 flex items-baseline justify-center gap-2">
                   <span className="text-5xl font-black tracking-tight text-teal-950 sm:text-7xl">
@@ -402,8 +450,13 @@ export function PositionFinder({
               <p className="mt-3 max-w-xl text-sm text-slate-600 sm:text-base">
                 {result.higherCount === 0 ? (
                   <span className="font-semibold text-emerald-700">
-                    🎉 Outstanding! No student in this cohort scored higher than{" "}
-                    {result.marks} marks. You hold the 1st Position!
+                    🎉 Outstanding! No student{" "}
+                    {searchedParams.scope === "gb"
+                      ? "in Gilgit-Baltistan"
+                      : "in this cohort"}{" "}
+                    scored higher than {result.marks} marks. You hold the 1st
+                    Position
+                    {searchedParams.scope === "gb" ? " in Gilgit-Baltistan" : ""}!
                   </span>
                 ) : (
                   <>
@@ -412,6 +465,11 @@ export function PositionFinder({
                       {result.higherCount.toLocaleString()}{" "}
                       {result.higherCount === 1 ? "student" : "students"}
                     </span>{" "}
+                    {searchedParams.scope === "gb" && (
+                      <span className="font-medium text-emerald-800">
+                        in Gilgit-Baltistan{" "}
+                      </span>
+                    )}
                     with higher marks than{" "}
                     <span className="font-bold text-teal-900">
                       {result.marks}
@@ -420,7 +478,11 @@ export function PositionFinder({
                     <span className="font-bold text-teal-900">
                       {getOrdinal(result.position)}
                     </span>{" "}
-                    position.
+                    position
+                    {searchedParams.scope === "gb"
+                      ? " in Gilgit-Baltistan"
+                      : ""}
+                    .
                   </>
                 )}
               </p>
@@ -431,17 +493,22 @@ export function PositionFinder({
                   <span>Percentile Rank</span>
                   <span className="text-teal-700 font-bold">
                     Top {result.topPercentage}%
+                    {searchedParams.scope === "gb" ? " in GB" : ""}
                   </span>
                 </div>
                 <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-700"
-                    style={{ width: `${Math.min(100, Math.max(2, result.percentile))}%` }}
+                    style={{
+                      width: `${Math.min(100, Math.max(2, result.percentile))}%`,
+                    }}
                   />
                 </div>
                 <div className="mt-1.5 flex justify-between text-[11px] text-slate-400">
                   <span>Bottom 0%</span>
-                  <span>Scored better than {result.percentile}% of candidates</span>
+                  <span>
+                    Scored better than {result.percentile}% of candidates
+                  </span>
                   <span>Top 100%</span>
                 </div>
               </div>
@@ -467,6 +534,7 @@ export function PositionFinder({
               </div>
               <p className="mt-2 text-[11px] text-slate-400">
                 Students with &gt; {result.marks} marks
+                {searchedParams.scope === "gb" ? " in GB" : ""}
               </p>
             </div>
 
@@ -507,6 +575,7 @@ export function PositionFinder({
               </div>
               <p className="mt-2 text-[11px] text-slate-400">
                 Students with &lt; {result.marks} marks
+                {searchedParams.scope === "gb" ? " in GB" : ""}
               </p>
             </div>
 
@@ -525,8 +594,13 @@ export function PositionFinder({
                   </div>
                 </div>
               </div>
-              <p className="mt-2 truncate text-[11px] text-slate-400" title={result.topStudent?.name || ""}>
-                {result.topStudent ? `1st: ${result.topStudent.name}` : "Highest score in cohort"}
+              <p
+                className="mt-2 truncate text-[11px] text-slate-400"
+                title={result.topStudent?.name || ""}
+              >
+                {result.topStudent
+                  ? `1st: ${result.topStudent.name}`
+                  : `Highest in ${searchedParams.scope === "gb" ? "GB" : "cohort"}`}
               </p>
             </div>
           </div>
@@ -537,6 +611,7 @@ export function PositionFinder({
               <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-5 py-4">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 sm:text-base">
+                    {searchedParams.scope === "gb" ? "Gilgit-Baltistan " : ""}
                     Students Scoring Higher than {result.marks} Marks
                   </h3>
                   <p className="text-xs text-slate-500">
@@ -580,7 +655,10 @@ export function PositionFinder({
                             {student.marks}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-slate-600 truncate max-w-xs" title={student.institution}>
+                        <td
+                          className="px-4 py-3 text-slate-600 truncate max-w-xs"
+                          title={student.institution}
+                        >
                           {student.institution}
                         </td>
                       </tr>
