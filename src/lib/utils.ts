@@ -12,11 +12,14 @@ export function getFbiseUrl(rollNo: string, classLevel: ClassLevel = "9th"): str
     "11th": { endpoint: "Result-link-hssc1.php", annual: "HSSC-I" },
     "12th": { endpoint: "Result-link-hssc2.php", annual: "HSSC-II" },
   };
-
+  if(classLevel === "9th" || classLevel === "10th") {
   const route = routes[classLevel] ?? routes["9th"];
   return `https://portal.fbise.edu.pk/fbise-conduct/result/${route.endpoint}?rollNo=${encodeURIComponent(rollNo)}&annual=${route.annual}`;
 }
-
+else{
+  return `https://fbise.edu.pk/HSSC1A26/${rollNo}.html`
+}
+}
 export function normalizeStatus(status: string): string {
   return status?.trim().toUpperCase().replace(/\.$/, "");
 }
