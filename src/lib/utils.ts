@@ -16,8 +16,11 @@ export function getFbiseUrl(rollNo: string, classLevel: ClassLevel = "9th"): str
   const route = routes[classLevel] ?? routes["9th"];
   return `https://portal.fbise.edu.pk/fbise-conduct/result/${route.endpoint}?rollNo=${encodeURIComponent(rollNo)}&annual=${route.annual}`;
 }
+else if(classLevel === "12th"){
+  return `https://portal.fbise.edu.pk/fbise-conduct/result/Result-link-hssc2.php?rollNo=${encodeURIComponent(rollNo)}&annual=${routes["12th"].annual}`
+}
 else{
-  return `https://fbise.edu.pk/HSSC1A26/${rollNo}.html`
+  return `https://portal.fbise.edu.pk/fbise-conduct/result/Result-link-hssc1.php?rollNo=${encodeURIComponent(rollNo)}&name=&annual=HSSC-I`
 }
 }
 export function normalizeStatus(status: string): string {
